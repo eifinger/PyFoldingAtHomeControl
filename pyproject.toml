@@ -1,0 +1,17 @@
+[build-system]
+requires = ["flit"]
+build-backend = "flit.buildapi"
+
+[tool.flit.metadata]
+module = "FoldingAtHomeControl"
+dist-name = "PyFoldingAtHomeControl"
+author = "eifinger"
+author-email = "k.eifinger@googlemail.com"
+home-page = "http://github.com/eifinger/PyFoldingAtHomeControl"
+classifiers = ["License :: OSI Approved :: MIT License"]
+requires = []
+requires-python=">=3.6"
+description-file="README.md"
+
+[tool.flit.metadata.requires-extra]
+test = []
