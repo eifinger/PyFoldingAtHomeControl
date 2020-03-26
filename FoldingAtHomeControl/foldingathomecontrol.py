@@ -1,6 +1,8 @@
 """Get Information on your Folding@Home Clients."""
 import asyncio
+from asyncio import StreamReader, StreamWriter
 import logging
+from typing import Optional
 from .const import COMMANDS
 from .pyonparser import convert_pyon_to_json
 
@@ -13,14 +15,16 @@ PY_ON_MESSAGE_FOOTER = "---"
 class FoldingAtHomeController:
     """Connect to Folding@Home Client."""
 
-    def __init__(self, address: str, port: int = 36330, password: str = None) -> None:
+    def __init__(
+        self, address: str, port: int = 36330, password: Optional[str] = None
+    ) -> None:
         """Initialize connection data."""
         self._address: str = address
         self._port: int = port
-        self._password: str = password
+        self._password: Optional[str] = password
 
-        self._reader = None
-        self._writer = None
+        self._reader: StreamReader
+        self._writer: StreamWriter
         self._callbacks_by_message_type: dict = {}
         self._is_connected: bool = False
 
@@ -43,7 +47,9 @@ class FoldingAtHomeController:
         auth_response = await self._read_async()
         _LOGGER.debug("Authentication response: %s", auth_response)
 
-    def register_callback_for_message_type(self, message_type, callback) -> None:
+    def register_callback_for_message_type(
+        self, message_type: str, callback: function
+    ) -> None:
         """Register a callback for received data."""
         if message_type not in self._callbacks_by_message_type:
             self._callbacks_by_message_type[message_type] = []
@@ -68,7 +74,7 @@ class FoldingAtHomeController:
         data = await self._reader.readuntil()
         return data.decode()
 
-    async def _try_parse_pyon_message(self) -> str:
+    async def _try_parse_pyon_message(self) -> None:
         """Read from the socket until a full message has been received."""
         raw_message = await self._read_async()
         if PY_ON_MESSAGE_HEADER in raw_message:
@@ -82,11 +88,11 @@ class FoldingAtHomeController:
             json_object = convert_pyon_to_json(message)
             await self._call_callbacks_async(message_type, json_object)
 
-    def _get_message_type_from_message(self, message):
+    def _get_message_type_from_message(self, message: str) -> str:
         """Parses the message_type from the message."""
         return message.split(" ")[2].replace("\n", "")
 
-    async def _call_callbacks_async(self, message_type, message: str) -> None:
+    async def _call_callbacks_async(self, message_type: str, message: str) -> None:
         """Pass the message to all callbacks."""
         if message_type in self._callbacks_by_message_type:
             for callback in self._callbacks_by_message_type[message_type]:
@@ -99,7 +105,7 @@ class FoldingAtHomeController:
         self._writer.write(message.encode())
         await self._writer.drain()
 
-    async def _subscribe_async(self):
+    async def _subscribe_async(self) -> None:
         """Send commands to subscribe to infos."""
         command_package = "".join(COMMANDS.values())
         await self._send_async(command_package)

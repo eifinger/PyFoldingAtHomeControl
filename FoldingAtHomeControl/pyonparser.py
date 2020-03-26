@@ -2,9 +2,10 @@
 
 import re
 import json
+from typing import Any
 
 
-def convert_pyon_to_json(message: str) -> str:
+def convert_pyon_to_json(message: str) -> Any:
     """Converts PyON to JSON."""
     # Convert False to false
     pattern = re.compile(r"\:\s*False")
