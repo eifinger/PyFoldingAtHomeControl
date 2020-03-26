@@ -5,7 +5,7 @@ long_description = open('README.md').read()
 
 setup(
     name='PyFoldingAtHomeControl',
-    version='00.1',
+    version='0.0.2',
     license='MIT',
     url='https://github.com/eifinger/PyFoldingAtHomeControl',
     author='Kevin Eifinger',
