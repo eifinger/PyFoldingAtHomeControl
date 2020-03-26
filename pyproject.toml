@@ -14,4 +14,20 @@ requires-python=">=3.6"
 description-file="README.md"
 
 [tool.flit.metadata.requires-extra]
-test = []
+test = [
+    "pytest >= 5.2.2",
+    "pytest-cov >= 2.8.1",
+    "pytest-asyncio",
+    "pylint",
+    "tox",
+    "pytest-mock",
+    "asynctest",
+    "codecov",
+    "coverage",
+    "mock",
+    "flake8",
+    "mypy",
+    "bandit",
+    "pre-commit",
+    "black"
+]
