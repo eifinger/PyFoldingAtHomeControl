@@ -2,7 +2,7 @@
 import asyncio
 from asyncio import StreamReader, StreamWriter
 import logging
-from typing import Optional
+from typing import Optional, Callable
 from .const import COMMANDS
 from .pyonparser import convert_pyon_to_json
 
@@ -48,7 +48,7 @@ class FoldingAtHomeController:
         _LOGGER.debug("Authentication response: %s", auth_response)
 
     def register_callback_for_message_type(
-        self, message_type: str, callback: function
+        self, message_type: str, callback: Callable
     ) -> None:
         """Register a callback for received data."""
         if message_type not in self._callbacks_by_message_type:
@@ -79,7 +79,7 @@ class FoldingAtHomeController:
         raw_message = await self._read_async()
         if PY_ON_MESSAGE_HEADER in raw_message:
             raw_messages = []
-            message_type = self._get_message_type_from_message(raw_message)
+            message_type = get_message_type_from_message(raw_message)
             while PY_ON_MESSAGE_FOOTER not in raw_message:
                 raw_message = await self._read_async()
                 raw_messages.append(raw_message)
@@ -87,10 +87,6 @@ class FoldingAtHomeController:
             message = "".join(raw_messages)
             json_object = convert_pyon_to_json(message)
             await self._call_callbacks_async(message_type, json_object)
-
-    def _get_message_type_from_message(self, message: str) -> str:
-        """Parses the message_type from the message."""
-        return message.split(" ")[2].replace("\n", "")
 
     async def _call_callbacks_async(self, message_type: str, message: str) -> None:
         """Pass the message to all callbacks."""
@@ -109,3 +105,8 @@ class FoldingAtHomeController:
         """Send commands to subscribe to infos."""
         command_package = "".join(COMMANDS.values())
         await self._send_async(command_package)
+
+
+def get_message_type_from_message(message: str) -> str:
+    """Parses the message_type from the message."""
+    return message.split(" ")[2].replace("\n", "")
