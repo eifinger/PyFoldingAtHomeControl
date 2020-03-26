@@ -21,9 +21,9 @@ from FoldingAtHomeControl import FoldingAtHomeController
 from FoldingAtHomeControl import PyOnMessageTypes
 
 
-def logger_callback(data):
-    print("callback:", data)
-
+def callback(message_type, data):
+    if message_type == PyOnMessageTypes.UNITS.value:
+        print("units: ", data)
 
 async def cancel_task(task_to_cancel):
     task_to_cancel.cancel()
@@ -32,8 +32,7 @@ async def cancel_task(task_to_cancel):
 
 if __name__ == '__main__':
     Controller = FoldingAtHomeController("localhost")
-    for message_type in PyOnMessageTypes:
-        Controller.register_callback_for_message_type(message_type.value, logger_callback)
+    Controller.register_callback(callback)
     loop = asyncio.get_event_loop()
     task = loop.create_task(Controller.run())
     try:

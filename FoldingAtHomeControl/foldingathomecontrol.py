@@ -25,7 +25,7 @@ class FoldingAtHomeController:
 
         self._reader: StreamReader
         self._writer: StreamWriter
-        self._callbacks_by_message_type: dict = {}
+        self._callbacks: list = []
         self._is_connected: bool = False
 
     async def _connect_and_subscribe(self) -> None:
@@ -47,14 +47,12 @@ class FoldingAtHomeController:
         auth_response = await self._read_async()
         _LOGGER.debug("Authentication response: %s", auth_response)
 
-    def register_callback_for_message_type(
-        self, message_type: str, callback: Callable
+    def register_callback(
+        self, callback: Callable
     ) -> None:
         """Register a callback for received data."""
-        if message_type not in self._callbacks_by_message_type:
-            self._callbacks_by_message_type[message_type] = []
-        self._callbacks_by_message_type[message_type].append(callback)
-        _LOGGER.debug("Registered callback for message_type: %s", message_type)
+        self._callbacks.append(callback)
+        _LOGGER.debug("Registered callback")
 
     async def run(self) -> None:
         """Keep the server running."""
@@ -90,11 +88,8 @@ class FoldingAtHomeController:
 
     async def _call_callbacks_async(self, message_type: str, message: str) -> None:
         """Pass the message to all callbacks."""
-        if message_type in self._callbacks_by_message_type:
-            for callback in self._callbacks_by_message_type[message_type]:
-                callback(message)
-        else:
-            _LOGGER.error("Unknown PyON type: %s", message_type)
+        for callback in self._callbacks:
+            callback(message_type, message)
 
     async def _send_async(self, message: str) -> None:
         """Send data."""
