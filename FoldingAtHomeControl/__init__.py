@@ -3,4 +3,4 @@
 from .foldingathomecontrol import FoldingAtHomeController  # noqa
 from .const import PyOnMessageTypes  # noqa
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
