@@ -10,6 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 
 PY_ON_MESSAGE_HEADER = "PyON 1"
 PY_ON_MESSAGE_FOOTER = "---"
+SLEEP_IN_SECONDS = 10
 
 
 class FoldingAtHomeController:
@@ -59,7 +60,11 @@ class FoldingAtHomeController:
         while True:
             try:
                 if not self._is_connected:
-                    await self._connect_and_subscribe()
+                    try:
+                        await self._connect_and_subscribe()
+                    except ConnectionRefusedError:
+                        _LOGGER.error("Could not connect to %s:%d", self._address, self._port)
+                        asyncio.sleep(SLEEP_IN_SECONDS)
                 await self._try_parse_pyon_message()
             except asyncio.CancelledError as cancelled_error:
                 await self._writer.drain()
