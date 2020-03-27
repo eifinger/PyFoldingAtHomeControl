@@ -165,7 +165,7 @@ class FoldingAtHomeController:
 
     async def _call_callbacks_async(self, message_type: str, message: str) -> None:
         """Pass the message to all callbacks."""
-        for callback in self._callbacks:
+        for callback in self._callbacks.values():
             callback(message_type, message)
 
     async def _send_async(self, message: str) -> None:
