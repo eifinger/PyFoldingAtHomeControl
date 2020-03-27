@@ -22,8 +22,8 @@ from FoldingAtHomeControl import PyOnMessageTypes
 
 
 def callback(message_type, data):
-    if message_type == PyOnMessageTypes.UNITS.value:
-        print("units: ", data)
+    print(f"callback for: {message_type}: ", data)
+
 
 async def cancel_task(task_to_cancel):
     task_to_cancel.cancel()
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     task = loop.create_task(Controller.run())
     try:
-        loop.run_forever()
+        loop.run_until_complete(task)
     except KeyboardInterrupt:
         pass
     finally:
