@@ -172,6 +172,11 @@ class FoldingAtHomeController:
         _LOGGER.info("Got Cancelled")
         raise cancelled_error
 
+    @property
+    def is_connected(self) -> bool:
+        """Is the client connected."""
+        return self._is_connected
+
 
 def get_message_type_from_message(message: str) -> str:
     """Parses the message_type from the message."""
