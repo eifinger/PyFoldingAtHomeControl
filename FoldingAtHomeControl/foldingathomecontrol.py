@@ -2,11 +2,13 @@
 import asyncio
 from asyncio import StreamReader, StreamWriter
 import logging
-from typing import Optional, Callable, Coroutine
+from uuid import uuid4
+from typing import Optional, Callable, Coroutine, Awaitable
 from .const import COMMANDS
 from .exceptions import (
     FoldingAtHomeControlAuthenticationFailed,
     FoldingAtHomeControlAuthenticationRequired,
+    FoldingAtHomeControlConnectionFailed,
 )
 from .pyonparser import convert_pyon_to_json
 
@@ -34,14 +36,22 @@ class FoldingAtHomeController:
 
         self._reader: StreamReader
         self._writer: StreamWriter
-        self._callbacks: list = []
+        self._callbacks: dict = {}
         self._is_connected: bool = False
         self._is_authenticated: bool = False
+        self._connect_task: Optional[asyncio.Task] = None
 
-    def register_callback(self, callback: Callable) -> None:
+    def register_callback(self, callback: Callable) -> Callable:
         """Register a callback for received data."""
-        self._callbacks.append(callback)
+        uuid = uuid4()
+        self._callbacks[uuid] = callback
         _LOGGER.debug("Registered callback")
+
+        def remove_callback() -> None:
+            """Remove callback."""
+            del self._callbacks[uuid]
+
+        return remove_callback
 
     async def run(self) -> None:
         """Keep the server running."""
@@ -52,27 +62,36 @@ class FoldingAtHomeController:
                     await self._try_parse_pyon_message_async()
                 else:
                     try:
-                        await self._try_connect_async(CONNECT_TIMEOUT)
+                        await self.try_connect_async(CONNECT_TIMEOUT)
                     except ConnectionRefusedError:
                         _LOGGER.error(
                             "Could not connect to %s:%d", self._address, self._port
                         )
                         asyncio.sleep(SLEEP_IN_SECONDS)
+                    except FoldingAtHomeControlConnectionFailed:
+                        _LOGGER.error(
+                            "Timeout while trying to connect to %s:%d",
+                            self._address,
+                            self._port,
+                        )
             except asyncio.CancelledError as cancelled_error:
-                self._cleanup(task, cancelled_error)
+                await self._cleanup_async(task, cancelled_error)
 
-    async def _try_connect_async(self, timeout: int) -> None:
+    async def try_connect_async(self, timeout: int) -> None:
         """Try to connect with timeout."""
-        task = asyncio.get_event_loop().create_task(self._connect_and_subscribe())
-        _, pending = await asyncio.wait({task}, timeout=5)
-        if task in pending:
-            _LOGGER.error(
-                "Timeout while trying to connect to %s:%d", self._address, self._port,
-            )
-            task.cancel()
-            await task
+        self._connect_task = asyncio.get_event_loop().create_task(
+            self._connect_and_subscribe_async()
+        )
+        _, pending = await asyncio.wait([self._connect_task], timeout=timeout)
+        if self._connect_task in pending:
+            try:
+                self._connect_task.cancel()
+                await self._connect_task
+            except asyncio.CancelledError:
+                pass
+            raise FoldingAtHomeControlConnectionFailed
 
-    async def _connect_and_subscribe(self) -> None:
+    async def _connect_and_subscribe_async(self) -> None:
         """Open the connection to the socket."""
         self._reader, self._writer = await asyncio.open_connection(
             self._address, self._port
@@ -159,13 +178,16 @@ class FoldingAtHomeController:
         command_package = "".join(COMMANDS.values())
         await self._send_async(command_package)
 
-    async def _cleanup(
-        self, task: Optional[Coroutine], cancelled_error: Exception
+    async def _cleanup_async(
+        self, task: Optional[asyncio.Task], cancelled_error: Exception
     ) -> None:
         """Clean up running tasks and writers."""
         if task is not None:
             task.cancel()
             await task
+        if self._connect_task is not None:
+            self._connect_task.cancel()
+            await self._connect_task
         if hasattr(self, "_writer"):
             await self._writer.drain()
             self._writer.close()

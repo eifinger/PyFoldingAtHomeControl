@@ -11,3 +11,9 @@ class FoldingAtHomeControlAuthenticationRequired(Exception):
     """Authentication Required."""
 
     pass
+
+
+class FoldingAtHomeControlConnectionFailed(Exception):
+    """Connection failed."""
+
+    pass
