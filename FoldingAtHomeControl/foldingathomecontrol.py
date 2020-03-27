@@ -2,7 +2,7 @@
 import asyncio
 from asyncio import StreamReader, StreamWriter
 import logging
-from typing import Optional, Callable
+from typing import Optional, Callable, Coroutine
 from .const import COMMANDS
 from .exceptions import (
     FoldingAtHomeControlAuthenticationFailed,
@@ -17,7 +17,8 @@ PY_ON_MESSAGE_FOOTER = "---"
 PY_ON_ERROR = "ERROR"
 SLEEP_IN_SECONDS = 10
 MAX_AUTHENTICATION_MESSAGE_COUNT = 5
-UNAUTHENTICATED_INDICATOR = ""
+UNAUTHENTICATED_INDICATOR = "unknown command or variable 'updates'"
+CONNECT_TIMEOUT = 5
 
 
 class FoldingAtHomeController:
@@ -47,40 +48,29 @@ class FoldingAtHomeController:
         task = None
         while True:
             try:
-                if not self._is_connected:
+                if self._is_connected:
+                    await self._try_parse_pyon_message_async()
+                else:
                     try:
-                        task = asyncio.get_event_loop().create_task(
-                            self._connect_and_subscribe()
-                        )
-                        done, pending = await asyncio.wait({task}, timeout=5)
-                        if task in pending:
-                            _LOGGER.error(
-                                "Timeout while trying to connect to %s:%d",
-                                self._address,
-                                self._port,
-                            )
-                            task.cancel()
-                        else:
-                            await self._try_parse_pyon_message()
+                        await self._try_connect_async(CONNECT_TIMEOUT)
                     except ConnectionRefusedError:
                         _LOGGER.error(
                             "Could not connect to %s:%d", self._address, self._port
                         )
                         asyncio.sleep(SLEEP_IN_SECONDS)
-                    except (
-                        FoldingAtHomeControlAuthenticationFailed,
-                        FoldingAtHomeControlAuthenticationRequired,
-                    ) as auth_error:
-                        raise auth_error
             except asyncio.CancelledError as cancelled_error:
-                if task is not None:
-                    task.cancel()
-                    await task
-                if hasattr(self, "_writer"):
-                    await self._writer.drain()
-                    self._writer.close()
-                _LOGGER.info("Got Cancelled")
-                raise cancelled_error
+                self._cleanup(task, cancelled_error)
+
+    async def _try_connect_async(self, timeout: int) -> None:
+        """Try to connect with timeout."""
+        task = asyncio.get_event_loop().create_task(self._connect_and_subscribe())
+        _, pending = await asyncio.wait({task}, timeout=5)
+        if task in pending:
+            _LOGGER.error(
+                "Timeout while trying to connect to %s:%d", self._address, self._port,
+            )
+            task.cancel()
+            await task
 
     async def _connect_and_subscribe(self) -> None:
         """Open the connection to the socket."""
@@ -133,7 +123,7 @@ class FoldingAtHomeController:
         data = await self._reader.readuntil()
         return data.decode()
 
-    async def _try_parse_pyon_message(self) -> None:
+    async def _try_parse_pyon_message_async(self) -> None:
         """Read from the socket until a full message has been received."""
         raw_message = await self._read_async()
         if PY_ON_MESSAGE_HEADER in raw_message:
@@ -149,7 +139,7 @@ class FoldingAtHomeController:
         elif PY_ON_ERROR in raw_message:
             _LOGGER.error("Received error: %s", raw_message.strip())
             if UNAUTHENTICATED_INDICATOR in raw_message and not self._is_authenticated:
-                _LOGGER.error("This could a password is needed.")
+                _LOGGER.error("This could mean a password is needed.")
                 raise FoldingAtHomeControlAuthenticationRequired(
                     "Seems like a password is required but was not provided."
                 )
@@ -168,6 +158,19 @@ class FoldingAtHomeController:
         """Send commands to subscribe to infos."""
         command_package = "".join(COMMANDS.values())
         await self._send_async(command_package)
+
+    async def _cleanup(
+        self, task: Optional[Coroutine], cancelled_error: Exception
+    ) -> None:
+        """Clean up running tasks and writers."""
+        if task is not None:
+            task.cancel()
+            await task
+        if hasattr(self, "_writer"):
+            await self._writer.drain()
+            self._writer.close()
+        _LOGGER.info("Got Cancelled")
+        raise cancelled_error
 
 
 def get_message_type_from_message(message: str) -> str:
