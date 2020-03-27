@@ -3,7 +3,7 @@ import asyncio
 from asyncio import StreamReader, StreamWriter
 import logging
 from uuid import uuid4
-from typing import Optional, Callable, Coroutine, Awaitable
+from typing import Optional, Callable
 from .const import COMMANDS
 from .exceptions import (
     FoldingAtHomeControlAuthenticationFailed,
