@@ -91,6 +91,10 @@ class FoldingAtHomeController:
                 pass
             raise FoldingAtHomeControlConnectionFailed
 
+    async def request_work_server_assignment(self) -> None:
+        """Request work server assignment from the assignmentserver."""
+        await self._send_async("request-ws\n")
+
     async def _connect_and_subscribe_async(self) -> None:
         """Open the connection to the socket."""
         self._reader, self._writer = await asyncio.open_connection(
