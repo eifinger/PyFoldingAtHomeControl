@@ -1,0 +1,2 @@
+{'allow': '127.0.0.1 192.168.0.0/24', 'idle': 'true', 'passkey': 'fc2386f868e57a681685d857d85e587a', 'password': 'test', 'power': 'FULL', 'proxy': ': 8080', 'team': '1234567', 'user': 'mytestuser'
+}

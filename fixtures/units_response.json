@@ -1,0 +1,34 @@
+
+[
+    {
+        'id': '00',
+        'state': 'RUNNING',
+        'error': 'NO_ERROR',
+        'project': 11777,
+        'run': 0,
+        'clone': 17250,
+        'gen': 0,
+        'core': '0x22',
+        'unit': '0x00000003287234c95e774a8488c5d4ea',
+        'percentdone': '72.51%',
+        'eta': '1 hours 04 mins',
+        'ppd': '359072',
+        'creditestimate': '58183',
+        'waitingon': '',
+        'nextattempt': '0.00 secs',
+        'timeremaining': '8.08 days',
+        'totalframes': 100,
+        'framesdone': 72,
+        'assigned': '2020-03-28T08: 33: 55Z',
+        'timeout': '2020-03-29T08: 33: 55Z',
+        'deadline': '2020-04-05T13: 21: 54Z',
+        'ws': '40.114.52.201',
+        'cs': '13.82.98.119',
+        'attempts': 0,
+        'slot': '01',
+        'tpf': '2 mins 20 secs',
+        'basecredit': '9405'
+    },
+    {'id': '02', 'state': 'DOWNLOAD', 'error': 'NO_ERROR', 'project': 0, 'run': 0, 'clone': 0, 'gen': 0, 'core': 'unknown', 'unit': '0x00000000000000000000000000000000', 'percentdone': '0.00%', 'eta': '0.00 secs', 'ppd': '0', 'creditestimate': '0', 'waitingon': 'WS Assignment', 'nextattempt': '43 mins 36 secs', 'timeremaining': 'unknown time', 'totalframes': 0, 'framesdone': 0, 'assigned': '<invalid>', 'timeout': '<invalid>', 'deadline': '<invalid>', 'ws': '40.114.52.201', 'cs': '0.0.0.0', 'attempts': 9, 'slot': '00', 'tpf': '0.00 secs', 'basecredit': '0'
+    }
+]

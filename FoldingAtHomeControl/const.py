@@ -15,3 +15,4 @@ class PyOnMessageTypes(Enum):
     UNITS = "units"
     OPTIONS = "options"
     SLOTS = "slots"
+    ERROR = "error"

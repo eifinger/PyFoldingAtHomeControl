@@ -4,11 +4,12 @@ from asyncio import StreamReader, StreamWriter
 import logging
 from uuid import uuid4
 from typing import Optional, Callable
-from .const import COMMANDS
+from .const import COMMANDS, PyOnMessageTypes
 from .exceptions import (
     FoldingAtHomeControlAuthenticationFailed,
     FoldingAtHomeControlAuthenticationRequired,
     FoldingAtHomeControlConnectionFailed,
+    FoldingAtHomeControlNotConnected,
 )
 from .pyonparser import convert_pyon_to_json
 
@@ -93,6 +94,8 @@ class FoldingAtHomeController:
 
     async def request_work_server_assignment(self) -> None:
         """Request work server assignment from the assignmentserver."""
+        if not self._is_connected:
+            raise FoldingAtHomeControlNotConnected
         await self._send_async("request-ws\n")
 
     async def _connect_and_subscribe_async(self) -> None:
@@ -160,12 +163,16 @@ class FoldingAtHomeController:
             json_object = convert_pyon_to_json(message)
             await self._call_callbacks_async(message_type, json_object)
         elif PY_ON_ERROR in raw_message:
-            _LOGGER.error("Received error: %s", raw_message.strip())
+            error_message = raw_message.strip()
+            _LOGGER.error("Received error: %s", error_message)
             if UNAUTHENTICATED_INDICATOR in raw_message and not self._is_authenticated:
                 _LOGGER.error("This could mean a password is needed.")
                 raise FoldingAtHomeControlAuthenticationRequired(
                     "Seems like a password is required but was not provided."
                 )
+            await self._call_callbacks_async(
+                PyOnMessageTypes.ERROR.value, error_message
+            )
 
     async def _call_callbacks_async(self, message_type: str, message: str) -> None:
         """Pass the message to all callbacks."""

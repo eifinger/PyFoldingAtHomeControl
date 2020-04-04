@@ -2,9 +2,11 @@
 # pylint: disable=C0103
 from .foldingathomecontrol import FoldingAtHomeController  # noqa
 from .exceptions import (  # noqa
+    FoldingAtHomeControlException,
     FoldingAtHomeControlAuthenticationFailed,
     FoldingAtHomeControlAuthenticationRequired,
     FoldingAtHomeControlConnectionFailed,
+    FoldingAtHomeControlNotConnected,
 )
 from .const import PyOnMessageTypes  # noqa
 

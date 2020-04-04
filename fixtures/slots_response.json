@@ -1,0 +1,9 @@
+[
+    {'id': '00', 'status': 'READY', 'description': 'cpu: 3', 'options': {'idle': 'false'
+        }, 'reason': '', 'idle': False
+    },
+    {'id': '01', 'status': 'RUNNING', 'description': 'gpu: 0:Hawaii [Radeon R9 200/300 Series
+        ]', 'options': {'idle': 'false'
+        }, 'reason': '', 'idle': False
+    }
+]
