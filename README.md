@@ -34,7 +34,9 @@ if __name__ == '__main__':
     Controller = FoldingAtHomeController("localhost")
     Controller.register_callback(callback)
     loop = asyncio.get_event_loop()
-    task = loop.create_task(Controller.run())
+    loop.run_until_complete(Controller.try_connect_async(5))
+    loop.run_until_complete(Controller.subscribe_async())
+    task = loop.create_task(Controller.start())
     try:
         loop.run_until_complete(task)
     except KeyboardInterrupt:
