@@ -1,15 +1,15 @@
 """Get Information on your Folding@Home Clients."""
 import asyncio
 import logging
+from typing import Callable, Optional
 from uuid import uuid4
-from typing import Optional, Callable
+
 from .const import COMMANDS, PyOnMessageTypes
 from .exceptions import (
     FoldingAtHomeControlAuthenticationRequired,
     FoldingAtHomeControlConnectionFailed,
 )
 from .pyonparser import convert_pyon_to_json
-
 from .serialconnection import SerialConnection
 
 _LOGGER = logging.getLogger(__name__)
@@ -17,10 +17,10 @@ _LOGGER = logging.getLogger(__name__)
 PY_ON_MESSAGE_HEADER = "PyON 1"
 PY_ON_MESSAGE_FOOTER = "---"
 PY_ON_ERROR = "ERROR"
-SLEEP_IN_SECONDS = 10
+RETRY_WAIT_IN_SECONDS = 10
 MAX_AUTHENTICATION_MESSAGE_COUNT = 5
 UNAUTHENTICATED_INDICATOR = "unknown command or variable 'updates'"
-CONNECT_TIMEOUT = 5
+CONNECT_TIMEOUT_IN_SECONDS = 5
 
 
 class FoldingAtHomeController:
@@ -32,28 +32,46 @@ class FoldingAtHomeController:
         port: int = 36330,
         password: Optional[str] = None,
         reconnect_enabled: bool = True,
+        read_timeout: int = 5,
     ) -> None:
         """Initialize connection data."""
-        self._serialconnection = SerialConnection(address, port, password)
+        self._serialconnection = SerialConnection(address, port, password, read_timeout)
         self._reconnect_enabled: bool = reconnect_enabled
 
         self._callbacks: dict = {}
-        self._connect_task: Optional[asyncio.Task] = None
+        self._connect_task: Optional[asyncio.Future[None]] = None
         self._on_disconnect: Optional[Callable] = None
 
     async def try_connect_async(self, timeout: int) -> None:
         """Try to connect with timeout."""
         try:
-            self._connect_task = asyncio.get_event_loop().create_task(
+            self._connect_task = asyncio.ensure_future(
                 self._serialconnection.connect_async()
             )
-            _, pending = await asyncio.wait([self._connect_task], timeout=timeout)
+            completed, pending = await asyncio.wait(
+                [self._connect_task], timeout=timeout
+            )
             if self._connect_task in pending:
                 try:
                     self._connect_task.cancel()
                     await self._connect_task
                 except asyncio.CancelledError:
                     pass
+                _LOGGER.error(
+                    "Timeout while trying to connect to %s:%d",
+                    self._serialconnection.address,
+                    self._serialconnection.port,
+                )
+                raise FoldingAtHomeControlConnectionFailed
+            try:
+                await asyncio.gather(*completed)
+                await asyncio.gather(*pending)
+            except ConnectionRefusedError:
+                _LOGGER.error(
+                    "Could not connect to %s:%d",
+                    self._serialconnection.address,
+                    self._serialconnection.port,
+                )
                 raise FoldingAtHomeControlConnectionFailed
         except asyncio.streams.IncompleteReadError:
             raise FoldingAtHomeControlConnectionFailed
@@ -62,22 +80,11 @@ class FoldingAtHomeController:
         """Try until connect succeeds."""
         while not self.is_connected:
             try:
-                await self.try_connect_async(CONNECT_TIMEOUT)
-            except ConnectionRefusedError:
-                _LOGGER.error(
-                    "Could not connect to %s:%d",
-                    self._serialconnection.address,
-                    self._serialconnection.port,
-                )
-                await asyncio.sleep(SLEEP_IN_SECONDS)
+                await self.try_connect_async(CONNECT_TIMEOUT_IN_SECONDS)
             except FoldingAtHomeControlConnectionFailed:
-                _LOGGER.error(
-                    "Timeout while trying to connect to %s:%d",
-                    self._serialconnection.address,
-                    self._serialconnection.port,
-                )
+                await asyncio.sleep(RETRY_WAIT_IN_SECONDS)
             except asyncio.CancelledError as cancelled_error:
-                await self._cleanup_async(None, cancelled_error)
+                await self._cleanup_async(cancelled_error)
 
     def register_callback(self, callback: Callable) -> Callable:
         """Register a callback for received data."""
@@ -93,14 +100,16 @@ class FoldingAtHomeController:
 
     async def start(self) -> None:
         """Start listening to the socket."""
-        task = None
         while self.is_connected:
             try:
                 await self._try_parse_pyon_message_async()
-            except asyncio.streams.IncompleteReadError:
+            except (
+                asyncio.streams.IncompleteReadError,
+                FoldingAtHomeControlConnectionFailed,
+            ):
                 await self._call_on_disconnect_async()
             except asyncio.CancelledError as cancelled_error:
-                await self._cleanup_async(task, cancelled_error)
+                await self._cleanup_async(cancelled_error)
 
     async def subscribe_async(
         self, commands: list = list(COMMANDS.values())
@@ -112,6 +121,26 @@ class FoldingAtHomeController:
     async def request_work_server_assignment_async(self) -> None:
         """Request work server assignment from the assignmentserver."""
         await self._serialconnection.send_async("request-ws\n")
+
+    async def pause_slot_async(self, slot_id: str) -> None:
+        """Pause a slot."""
+        await self._serialconnection.send_async(f"pause {slot_id}\n")
+
+    async def pause_all_slots_async(self) -> None:
+        """Pause all slots."""
+        await self._serialconnection.send_async("pause\n")
+
+    async def unpause_slot_async(self, slot_id: str) -> None:
+        """Unpause a slot."""
+        await self._serialconnection.send_async(f"unpause {slot_id}\n")
+
+    async def unpause_all_slots_async(self) -> None:
+        """Unpause all slots."""
+        await self._serialconnection.send_async("unpause\n")
+
+    async def shutdown(self) -> None:
+        """Shutdown the client."""
+        await self._serialconnection.send_async("shutdown\n")
 
     def on_disconnect(self, func: Callable) -> None:
         """Register a method to be executed when the connection is disconnected."""
@@ -164,13 +193,8 @@ class FoldingAtHomeController:
             await self.connect_async()
             await self.subscribe_async()
 
-    async def _cleanup_async(
-        self, task: Optional[asyncio.Task], cancelled_error: Exception
-    ) -> None:
+    async def _cleanup_async(self, cancelled_error: Exception) -> None:
         """Clean up running tasks and writers."""
-        if task is not None:
-            task.cancel()
-            await task
         if self._connect_task is not None:
             self._connect_task.cancel()
             await self._connect_task

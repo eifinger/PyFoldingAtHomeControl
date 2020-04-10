@@ -1,10 +1,12 @@
 """Serial Connection for FoldingAtHomeControl."""
 import asyncio
-from asyncio import StreamReader, StreamWriter, Lock
 import logging
-from typing import Optional
+from asyncio import Future, Lock, StreamReader, StreamWriter
+from typing import Any, Optional
+
 from .exceptions import (
     FoldingAtHomeControlAuthenticationFailed,
+    FoldingAtHomeControlConnectionFailed,
     FoldingAtHomeControlNotConnected,
 )
 
@@ -17,12 +19,17 @@ class SerialConnection:
     """Serial Connection for FoldingAtHomeControl."""
 
     def __init__(
-        self, address: str, port: int = 36330, password: Optional[str] = None
+        self,
+        address: str,
+        port: int = 36330,
+        password: Optional[str] = None,
+        read_timeout: int = 5,
     ) -> None:
         """Initialize connection data."""
         self._address: str = address
         self._port: int = port
         self._password: Optional[str] = password
+        self._read_timeout: int = read_timeout
 
         self._reader: StreamReader
         self._writer: StreamWriter
@@ -31,6 +38,7 @@ class SerialConnection:
         self._is_authenticated: bool = False
         self._reader_lock: Lock = Lock()
         self._writer_lock: Lock = Lock()
+        self._read_future: Optional[Future[bytes]] = None
 
     async def connect_async(self) -> None:
         """Open the connection to the socket."""
@@ -77,17 +85,35 @@ class SerialConnection:
             "Did not receive a valid authentication response."
         )
 
-    async def read_async(self) -> str:
+    async def read_async(self) -> Any:
         """Read string from the socket and return it."""
         async with self._reader_lock:
             if not self._is_connected:
                 raise FoldingAtHomeControlNotConnected
             try:
-                data = await self._reader.readuntil()
+                self._read_future = asyncio.ensure_future(self._reader.readuntil())
+                completed, pending = await asyncio.wait(
+                    [self._read_future], timeout=self._read_timeout
+                )
+                if self._read_future in pending:
+                    try:
+                        self._read_future.cancel()
+                        await self._read_future
+                    except asyncio.CancelledError:
+                        pass
+                    _LOGGER.error(
+                        "Timeout while trying to read from %s:%d",
+                        self.address,
+                        self.port,
+                    )
+                    self._is_connected = False
+                    raise FoldingAtHomeControlConnectionFailed
+                future_results = await asyncio.gather(*completed)
+                await asyncio.gather(*pending)
             except asyncio.streams.IncompleteReadError as error:
                 self._is_connected = False
                 raise error
-            return data.decode()
+            return future_results[0].decode()
 
     async def send_async(self, message: str) -> None:
         """Send data."""
@@ -99,6 +125,9 @@ class SerialConnection:
 
     async def cleanup_async(self) -> None:
         """Clean up running tasks and writers."""
+        if self._read_future is not None:
+            self._read_future.cancel()
+            await self._read_future
         if hasattr(self, "_writer"):
             await self._writer.drain()
             self._writer.close()
