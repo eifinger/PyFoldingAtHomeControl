@@ -66,7 +66,7 @@ class FoldingAtHomeController:
             try:
                 await asyncio.gather(*completed)
                 await asyncio.gather(*pending)
-            except ConnectionRefusedError:
+            except (ConnectionError):
                 _LOGGER.error(
                     "Could not connect to %s:%d",
                     self._serialconnection.address,
