@@ -109,7 +109,9 @@ class FoldingAtHomeController:
             ):
                 await self._call_on_disconnect_async()
             except asyncio.CancelledError as cancelled_error:
+                _LOGGER.debug("Got cancelled.")
                 await self._cleanup_async(cancelled_error)
+        _LOGGER.debug("Start ended.")
 
     async def subscribe_async(
         self, commands: list = list(COMMANDS.values())
@@ -189,7 +191,7 @@ class FoldingAtHomeController:
                 await self._on_disconnect()
             else:
                 self._on_disconnect()
-        elif self._reconnect_enabled:
+        if self._reconnect_enabled:
             await self.connect_async()
             await self.subscribe_async()
 
@@ -200,7 +202,7 @@ class FoldingAtHomeController:
             await self._connect_task
         if self._serialconnection is not None:
             await self._serialconnection.cleanup_async()
-        _LOGGER.info("Got Cancelled")
+        _LOGGER.debug("Cleanup finished")
         raise cancelled_error
 
     @property
