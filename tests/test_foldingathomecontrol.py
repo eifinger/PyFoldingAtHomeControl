@@ -10,6 +10,7 @@ from FoldingAtHomeControl import (
     FoldingAtHomeControlAuthenticationRequired,
     FoldingAtHomeController,
     FoldingAtHomeControlNotConnected,
+    FoldingAtHomeControlConnectionFailed
 )
 
 
@@ -98,6 +99,16 @@ async def test_request_work_server_assignment_raises_when_not_connected(
     """request_work_server_assignment raises exception when client is not connected."""
     with pytest.raises(FoldingAtHomeControlNotConnected):
         await foldingathomecontroller.request_work_server_assignment_async()
+
+
+@pytest.mark.asyncio
+async def test_controller_catches_ConnectionError(
+    foldingathomecontroller,
+):
+    """Test that all Connectionerrors are caught."""
+    with patch("asyncio.open_connection", side_effect=ConnectionError()):
+        with pytest.raises(FoldingAtHomeControlConnectionFailed):
+            await foldingathomecontroller.try_connect_async(timeout=5)
 
 
 @pytest.mark.asyncio
