@@ -1,6 +1,5 @@
 """Tests for serialconnection"""
 import asyncio
-from asyncio.streams import StreamReader
 from unittest.mock import MagicMock, patch
 
 import pytest

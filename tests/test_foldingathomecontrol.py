@@ -123,7 +123,7 @@ async def test_controller_disconnects_on_IncompleteReadError(
 
 @pytest.mark.asyncio
 async def test_controller_calls_on_disconnect_on_IncompleteReadError(
-    foldingathomecontroller,
+    disconnecting_foldingathomecontroller,
 ):
     """Test that a IncompleteReadError is caught and calls on_disconnect()."""
     callback = MagicMock()
@@ -135,13 +135,13 @@ async def test_controller_calls_on_disconnect_on_IncompleteReadError(
     future = asyncio.Future()
     future.set_result((stream_reader, stream_writer))
     with patch("asyncio.open_connection", return_value=future):
-        await foldingathomecontroller.try_connect_async(timeout=5)
+        await disconnecting_foldingathomecontroller.try_connect_async(timeout=5)
         stream_reader.readuntil.side_effect = asyncio.streams.IncompleteReadError(
             [None], 5
         )
-        foldingathomecontroller.on_disconnect(callback)
-        await foldingathomecontroller.start()
-        assert not foldingathomecontroller.is_connected
+        disconnecting_foldingathomecontroller.on_disconnect(callback)
+        await disconnecting_foldingathomecontroller.start()
+        assert not disconnecting_foldingathomecontroller.is_connected
         callback.assert_called()
 
 
