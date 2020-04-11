@@ -249,3 +249,11 @@ async def test_parse_error(
         with pytest.raises(FoldingAtHomeControlAuthenticationRequired):
             await disconnecting_foldingathomecontroller.start()
             callback.assert_called()
+
+
+@pytest.mark.asyncio
+async def test_set_read_timeout(foldingathomecontroller):
+    """Test setting the read timeout works."""
+    assert foldingathomecontroller.read_timeout == 5
+    await foldingathomecontroller.set_read_timeout_async(10)
+    assert foldingathomecontroller.read_timeout == 10

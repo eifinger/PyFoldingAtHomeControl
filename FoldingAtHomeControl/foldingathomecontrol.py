@@ -86,6 +86,10 @@ class FoldingAtHomeController:
             except asyncio.CancelledError as cancelled_error:
                 await self._cleanup_async(cancelled_error)
 
+    def on_disconnect(self, func: Callable) -> None:
+        """Register a method to be executed when the connection is disconnected."""
+        self._on_disconnect = func
+
     def register_callback(self, callback: Callable) -> Callable:
         """Register a callback for received data."""
         uuid = uuid4()
@@ -97,6 +101,17 @@ class FoldingAtHomeController:
             del self._callbacks[uuid]
 
         return remove_callback
+
+    async def set_read_timeout_async(self, timeout: int) -> None:
+        """Set the read timeout in seconds."""
+        await self._serialconnection.set_read_timeout_async(timeout)
+
+    async def subscribe_async(
+        self, commands: list = list(COMMANDS.values())
+    ):  # pylint: disable=dangerous-default-value
+        """Start a subscription to commands."""
+        command_package = "".join(commands)
+        await self._serialconnection.send_async(command_package)
 
     async def start(self) -> None:
         """Start listening to the socket."""
@@ -112,13 +127,6 @@ class FoldingAtHomeController:
                 _LOGGER.debug("Got cancelled.")
                 await self._cleanup_async(cancelled_error)
         _LOGGER.debug("Start ended.")
-
-    async def subscribe_async(
-        self, commands: list = list(COMMANDS.values())
-    ):  # pylint: disable=dangerous-default-value
-        """Start a subscription to commands."""
-        command_package = "".join(commands)
-        await self._serialconnection.send_async(command_package)
 
     async def request_work_server_assignment_async(self) -> None:
         """Request work server assignment from the assignmentserver."""
@@ -143,10 +151,6 @@ class FoldingAtHomeController:
     async def shutdown(self) -> None:
         """Shutdown the client."""
         await self._serialconnection.send_async("shutdown\n")
-
-    def on_disconnect(self, func: Callable) -> None:
-        """Register a method to be executed when the connection is disconnected."""
-        self._on_disconnect = func
 
     async def _try_parse_pyon_message_async(self) -> None:
         """Read from the socket until a full message has been received."""
@@ -209,6 +213,11 @@ class FoldingAtHomeController:
     def is_connected(self) -> bool:
         """Is the client connected."""
         return self._serialconnection.is_connected
+
+    @property
+    def read_timeout(self) -> int:
+        """The configured read timeout."""
+        return self._serialconnection.read_timeout
 
 
 def get_message_type_from_message(message: str) -> str:

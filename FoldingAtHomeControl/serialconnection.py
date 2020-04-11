@@ -85,6 +85,11 @@ class SerialConnection:
             "Did not receive a valid authentication response."
         )
 
+    async def set_read_timeout_async(self, timeout: int) -> None:
+        """Set the read timeout in seconds."""
+        async with self._reader_lock:
+            self._read_timeout = timeout
+
     async def read_async(self) -> Any:
         """Read string from the socket and return it."""
         async with self._reader_lock:
@@ -152,3 +157,8 @@ class SerialConnection:
     def is_authenticated(self) -> bool:
         """Is the connection authenticated?"""
         return self._is_authenticated
+
+    @property
+    def read_timeout(self) -> int:
+        """The configured read timeout."""
+        return self._read_timeout
