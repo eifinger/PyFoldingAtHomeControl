@@ -10,7 +10,7 @@ from FoldingAtHomeControl import (
     FoldingAtHomeControlAuthenticationRequired,
     FoldingAtHomeController,
     FoldingAtHomeControlNotConnected,
-    FoldingAtHomeControlConnectionFailed
+    FoldingAtHomeControlConnectionFailed,
 )
 
 
@@ -102,9 +102,7 @@ async def test_request_work_server_assignment_raises_when_not_connected(
 
 
 @pytest.mark.asyncio
-async def test_controller_catches_ConnectionError(
-    foldingathomecontroller,
-):
+async def test_controller_catches_ConnectionError(foldingathomecontroller,):
     """Test that all Connectionerrors are caught."""
     with patch("asyncio.open_connection", side_effect=ConnectionError()):
         with pytest.raises(FoldingAtHomeControlConnectionFailed):
@@ -265,6 +263,6 @@ async def test_parse_error(
 @pytest.mark.asyncio
 async def test_set_read_timeout(foldingathomecontroller):
     """Test setting the read timeout works."""
-    assert foldingathomecontroller.read_timeout == 5
+    assert foldingathomecontroller.read_timeout == 15
     await foldingathomecontroller.set_read_timeout_async(10)
     assert foldingathomecontroller.read_timeout == 10

@@ -4,23 +4,32 @@ import logging
 from typing import Callable, Optional
 from uuid import uuid4
 
-from .const import COMMANDS, PyOnMessageTypes
+from .const import (
+    COMMAND_PAUSE,
+    COMMAND_REQUEST_WORKSERVER_ASSIGNMENT,
+    COMMAND_SHUTDOWN,
+    COMMAND_UNPAUSE,
+    PY_ON_ERROR,
+    PY_ON_MESSAGE_FOOTER,
+    PY_ON_MESSAGE_HEADER,
+    SUBSCRIBE_COMMANDS,
+    UNAUTHENTICATED_INDICATOR,
+    PyOnMessageTypes,
+)
 from .exceptions import (
     FoldingAtHomeControlAuthenticationRequired,
     FoldingAtHomeControlConnectionFailed,
+    FoldingAtHomeControlNotConnected,
 )
 from .pyonparser import convert_pyon_to_json
 from .serialconnection import SerialConnection
 
 _LOGGER = logging.getLogger(__name__)
 
-PY_ON_MESSAGE_HEADER = "PyON 1"
-PY_ON_MESSAGE_FOOTER = "---"
-PY_ON_ERROR = "ERROR"
 RETRY_WAIT_IN_SECONDS = 10
 MAX_AUTHENTICATION_MESSAGE_COUNT = 5
-UNAUTHENTICATED_INDICATOR = "unknown command or variable 'updates'"
 CONNECT_TIMEOUT_IN_SECONDS = 5
+SUBSCRIPTION_UPDATE_RATE_IN_SECONDS = 5
 
 
 class FoldingAtHomeController:
@@ -32,7 +41,7 @@ class FoldingAtHomeController:
         port: int = 36330,
         password: Optional[str] = None,
         reconnect_enabled: bool = True,
-        read_timeout: int = 5,
+        read_timeout: int = 15,
     ) -> None:
         """Initialize connection data."""
         self._serialconnection = SerialConnection(address, port, password, read_timeout)
@@ -41,6 +50,7 @@ class FoldingAtHomeController:
         self._callbacks: dict = {}
         self._connect_task: Optional[asyncio.Future[None]] = None
         self._on_disconnect: Optional[Callable] = None
+        self._subscription_counter: int = 0
 
     async def try_connect_async(self, timeout: int) -> None:
         """Try to connect with timeout."""
@@ -106,12 +116,16 @@ class FoldingAtHomeController:
         """Set the read timeout in seconds."""
         await self._serialconnection.set_read_timeout_async(timeout)
 
-    async def subscribe_async(
-        self, commands: list = list(COMMANDS.values())
-    ):  # pylint: disable=dangerous-default-value
+    async def subscribe_async(  # pylint: disable=dangerous-default-value
+        self, commands: list = SUBSCRIBE_COMMANDS
+    ) -> None:
         """Start a subscription to commands."""
-        command_package = "".join(commands)
-        await self._serialconnection.send_async(command_package)
+        subscriptions = []
+        for command in commands:
+            subscription = f"updates add {self._get_next_subscription_id()} {SUBSCRIPTION_UPDATE_RATE_IN_SECONDS} ${command}"  # pylint: disable=line-too-long
+            subscriptions.append(subscription)
+
+        await self._send_commands_async(subscriptions)
 
     async def start(self) -> None:
         """Start listening to the socket."""
@@ -130,27 +144,27 @@ class FoldingAtHomeController:
 
     async def request_work_server_assignment_async(self) -> None:
         """Request work server assignment from the assignmentserver."""
-        await self._serialconnection.send_async("request-ws\n")
+        await self._send_command_async(COMMAND_REQUEST_WORKSERVER_ASSIGNMENT)
 
     async def pause_slot_async(self, slot_id: str) -> None:
         """Pause a slot."""
-        await self._serialconnection.send_async(f"pause {slot_id}\n")
+        await self._send_command_async(f"{COMMAND_PAUSE} {slot_id}")
 
     async def pause_all_slots_async(self) -> None:
         """Pause all slots."""
-        await self._serialconnection.send_async("pause\n")
+        await self._send_command_async(COMMAND_PAUSE)
 
     async def unpause_slot_async(self, slot_id: str) -> None:
         """Unpause a slot."""
-        await self._serialconnection.send_async(f"unpause {slot_id}\n")
+        await self._send_command_async(f"{COMMAND_UNPAUSE} {slot_id}")
 
     async def unpause_all_slots_async(self) -> None:
         """Unpause all slots."""
-        await self._serialconnection.send_async("unpause\n")
+        await self._send_command_async(COMMAND_UNPAUSE)
 
     async def shutdown(self) -> None:
         """Shutdown the client."""
-        await self._serialconnection.send_async("shutdown\n")
+        await self._send_command_async(COMMAND_SHUTDOWN)
 
     async def _try_parse_pyon_message_async(self) -> None:
         """Read from the socket until a full message has been received."""
@@ -190,6 +204,7 @@ class FoldingAtHomeController:
 
     async def _call_on_disconnect_async(self) -> None:
         """Call and if needed await on_disconnect callback."""
+        self._reset_subscription_counter()
         if self._on_disconnect is not None:
             if asyncio.iscoroutinefunction(self._on_disconnect):
                 await self._on_disconnect()
@@ -198,6 +213,15 @@ class FoldingAtHomeController:
         if self._reconnect_enabled:
             await self.connect_async()
             await self.subscribe_async()
+
+    def _get_next_subscription_id(self) -> int:
+        """Returns the next id for a subscription"""
+        self._subscription_counter += 1
+        return self._subscription_counter - 1
+
+    def _reset_subscription_counter(self) -> None:
+        """Reset the subscription counter to 0."""
+        self._subscription_counter = 0
 
     async def _cleanup_async(self, cancelled_error: Exception) -> None:
         """Clean up running tasks and writers."""
@@ -208,6 +232,19 @@ class FoldingAtHomeController:
             await self._serialconnection.cleanup_async()
         _LOGGER.debug("Cleanup finished")
         raise cancelled_error
+
+    async def _send_command_async(self, command: str) -> None:
+        """Send a command."""
+        if not self.is_connected:
+            raise FoldingAtHomeControlNotConnected
+        await self._serialconnection.send_async(f"{command}\n")
+
+    async def _send_commands_async(self, commands: list) -> None:
+        """Send a list of command."""
+        if not self.is_connected:
+            raise FoldingAtHomeControlNotConnected
+        command_package = "\n".join(commands)
+        await self._serialconnection.send_async(command_package)
 
     @property
     def is_connected(self) -> bool:

@@ -7,7 +7,6 @@ from typing import Any, Optional
 from .exceptions import (
     FoldingAtHomeControlAuthenticationFailed,
     FoldingAtHomeControlConnectionFailed,
-    FoldingAtHomeControlNotConnected,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -93,8 +92,6 @@ class SerialConnection:
     async def read_async(self) -> Any:
         """Read string from the socket and return it."""
         async with self._reader_lock:
-            if not self._is_connected:
-                raise FoldingAtHomeControlNotConnected
             try:
                 self._read_future = asyncio.ensure_future(self._reader.readuntil())
                 completed, pending = await asyncio.wait(
@@ -123,8 +120,6 @@ class SerialConnection:
     async def send_async(self, message: str) -> None:
         """Send data."""
         async with self._writer_lock:
-            if not self._is_connected:
-                raise FoldingAtHomeControlNotConnected
             self._writer.write(message.encode())
             await self._writer.drain()
 
