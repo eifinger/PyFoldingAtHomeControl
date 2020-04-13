@@ -45,10 +45,10 @@ class SerialConnection:
         self._reader, self._writer = await asyncio.open_connection(
             self._address, self._port
         )
-        self._is_connected = True
         await self._receive_welcome_message_async()
         if self._password is not None:
             await self._authenticate_async()
+        self._is_connected = True
 
     async def _receive_welcome_message_async(self) -> None:
         """Convenience method to receive strip and log the welcome message."""
