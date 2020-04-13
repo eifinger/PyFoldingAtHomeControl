@@ -76,7 +76,7 @@ class SerialConnection:
                 _LOGGER.debug("Authentication response: %s", auth_response)
                 raise FoldingAtHomeControlAuthenticationFailed("Password is incorrect.")
             auth_response = await self.read_async()
-        _LOGGER.error(
+        _LOGGER.debug(
             "Did not receive a valid authentication response in the last %d messages.",
             MAX_AUTHENTICATION_MESSAGE_COUNT,
         )
@@ -103,7 +103,7 @@ class SerialConnection:
                         await self._read_future
                     except asyncio.CancelledError:
                         pass
-                    _LOGGER.error(
+                    _LOGGER.debug(
                         "Timeout while trying to read from %s:%d",
                         self.address,
                         self.port,

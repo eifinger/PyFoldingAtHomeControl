@@ -67,7 +67,7 @@ class FoldingAtHomeController:
                     await self._connect_task
                 except asyncio.CancelledError:
                     pass
-                _LOGGER.error(
+                _LOGGER.debug(
                     "Timeout while trying to connect to %s:%d",
                     self._serialconnection.address,
                     self._serialconnection.port,
@@ -77,7 +77,7 @@ class FoldingAtHomeController:
                 await asyncio.gather(*completed)
                 await asyncio.gather(*pending)
             except OSError:
-                _LOGGER.error(
+                _LOGGER.debug(
                     "Could not connect to %s:%d",
                     self._serialconnection.address,
                     self._serialconnection.port,
@@ -181,12 +181,12 @@ class FoldingAtHomeController:
             await self._call_callbacks_async(message_type, json_object)
         elif PY_ON_ERROR in raw_message:
             error_message = raw_message.strip()
-            _LOGGER.error("Received error: %s", error_message)
+            _LOGGER.debug("Received error: %s", error_message)
             if (
                 UNAUTHENTICATED_INDICATOR in raw_message
                 and not self._serialconnection.is_authenticated
             ):
-                _LOGGER.error("This could mean a password is needed.")
+                _LOGGER.debug("This could mean a password is needed.")
                 raise FoldingAtHomeControlAuthenticationRequired(
                     "Seems like a password is required but was not provided."
                 )
