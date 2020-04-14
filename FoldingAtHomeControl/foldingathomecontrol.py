@@ -227,7 +227,7 @@ class FoldingAtHomeController:
         """Reset the subscription counter to 0."""
         self._subscription_counter = 0
 
-    async def cleanup_async(self, cancelled_error: Optional[Exception]) -> None:
+    async def cleanup_async(self, cancelled_error: Optional[Exception] = None) -> None:
         """Clean up running tasks and writers."""
         if self._connect_task is not None:
             self._connect_task.cancel()
