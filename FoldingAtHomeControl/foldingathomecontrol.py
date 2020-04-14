@@ -94,7 +94,7 @@ class FoldingAtHomeController:
             except FoldingAtHomeControlConnectionFailed:
                 await asyncio.sleep(RETRY_WAIT_IN_SECONDS)
             except asyncio.CancelledError as cancelled_error:
-                await self._cleanup_async(cancelled_error)
+                await self.cleanup_async(cancelled_error)
 
     def on_disconnect(self, func: Callable) -> None:
         """Register a method to be executed when the connection is disconnected."""
@@ -127,8 +127,12 @@ class FoldingAtHomeController:
 
         await self._send_commands_async(subscriptions)
 
-    async def start(self) -> None:
+    async def start(self, connect: bool = True, subscribe: bool = True) -> None:
         """Start listening to the socket."""
+        if connect:
+            await self.connect_async()
+        if subscribe:
+            await self.subscribe_async()
         while self.is_connected:
             try:
                 await self._try_parse_pyon_message_async()
@@ -139,7 +143,7 @@ class FoldingAtHomeController:
                 await self._call_on_disconnect_async()
             except asyncio.CancelledError as cancelled_error:
                 _LOGGER.debug("Got cancelled.")
-                await self._cleanup_async(cancelled_error)
+                await self.cleanup_async(cancelled_error)
         _LOGGER.debug("Start ended.")
 
     async def request_work_server_assignment_async(self) -> None:
@@ -223,7 +227,7 @@ class FoldingAtHomeController:
         """Reset the subscription counter to 0."""
         self._subscription_counter = 0
 
-    async def _cleanup_async(self, cancelled_error: Exception) -> None:
+    async def cleanup_async(self, cancelled_error: Optional[Exception]) -> None:
         """Clean up running tasks and writers."""
         if self._connect_task is not None:
             self._connect_task.cancel()
@@ -231,7 +235,8 @@ class FoldingAtHomeController:
         if self._serialconnection is not None:
             await self._serialconnection.cleanup_async()
         _LOGGER.debug("Cleanup finished")
-        raise cancelled_error
+        if cancelled_error is not None:
+            raise cancelled_error
 
     async def _send_command_async(self, command: str) -> None:
         """Send a command."""

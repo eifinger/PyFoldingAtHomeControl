@@ -126,7 +126,7 @@ async def test_controller_disconnects_on_IncompleteReadError(
         stream_reader.readuntil.side_effect = asyncio.streams.IncompleteReadError(
             [None], 5
         )
-        await disconnecting_foldingathomecontroller.start()
+        await disconnecting_foldingathomecontroller.start(connect=False, subscribe=False)
         assert not disconnecting_foldingathomecontroller.is_connected
 
 
@@ -149,7 +149,7 @@ async def test_controller_calls_on_disconnect_on_IncompleteReadError(
             [None], 5
         )
         disconnecting_foldingathomecontroller.on_disconnect(callback)
-        await disconnecting_foldingathomecontroller.start()
+        await disconnecting_foldingathomecontroller.start(connect=False, subscribe=False)
         assert not disconnecting_foldingathomecontroller.is_connected
         callback.assert_called()
 
@@ -169,7 +169,7 @@ async def test_controller_reconnects(foldingathomecontroller):
         stream_reader.readuntil.side_effect = asyncio.streams.IncompleteReadError(
             [None], 5
         )
-        task = asyncio.get_event_loop().create_task(foldingathomecontroller.start())
+        task = asyncio.get_event_loop().create_task(foldingathomecontroller.start(connect=False, subscribe=False))
         _, pending = await asyncio.wait([task], timeout=0.5)
         assert task in pending
         try:
@@ -190,13 +190,33 @@ async def test_controller_cleans_up_on_cancel(foldingathomecontroller):
     future = asyncio.Future()
     future.set_result((stream_reader, stream_writer))
     with patch("asyncio.open_connection", return_value=future):
-        await foldingathomecontroller.try_connect_async(timeout=5)
         task = asyncio.ensure_future(foldingathomecontroller.start())
         with pytest.raises(asyncio.CancelledError):
             await asyncio.sleep(0.5)
             task.cancel()
             await task
             assert not foldingathomecontroller.is_connected
+
+
+@pytest.mark.asyncio
+async def test_controller_connects_on_start(foldingathomecontroller):
+    """Test that the controller connects when start() is called."""
+    stream_reader = MagicMock()
+    reader_future = asyncio.Future()
+    reader_future.set_result(bytes(10))
+    stream_reader.readuntil.return_value = reader_future
+    stream_writer = MagicMock()
+    future = asyncio.Future()
+    future.set_result((stream_reader, stream_writer))
+    with patch("asyncio.open_connection", return_value=future):
+        task = asyncio.ensure_future(foldingathomecontroller.start())
+        await asyncio.sleep(0.5)
+        assert foldingathomecontroller.is_connected
+        try:
+            task.cancel()
+            await task
+        except:  # pylint: disable=bare-except # noqa
+            pass
 
 
 @pytest.mark.asyncio
@@ -236,8 +256,6 @@ async def test_parse_pyon_options(
     with patch("asyncio.open_connection", return_value=future):
         callback = MagicMock()
         disconnecting_foldingathomecontroller.register_callback(callback)
-        await disconnecting_foldingathomecontroller.try_connect_async(timeout=5)
-        await disconnecting_foldingathomecontroller.subscribe_async()
         await disconnecting_foldingathomecontroller.start()
         callback.assert_called()
 
@@ -253,8 +271,6 @@ async def test_parse_error(
     with patch("asyncio.open_connection", return_value=future):
         callback = MagicMock()
         disconnecting_foldingathomecontroller.register_callback(callback)
-        await disconnecting_foldingathomecontroller.try_connect_async(timeout=5)
-        await disconnecting_foldingathomecontroller.subscribe_async()
         with pytest.raises(FoldingAtHomeControlAuthenticationRequired):
             await disconnecting_foldingathomecontroller.start()
             callback.assert_called()

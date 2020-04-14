@@ -1,4 +1,4 @@
-# PyFoldingAtHomeControl - BETA
+# PyFoldingAtHomeControl
 Python library to get stats from your Folding@Home Clients
 
 [![GitHub Actions](https://github.com/eifinger/PyFoldingAtHomeControl/workflows/Python%20package/badge.svg)](https://github.com/eifinger/PyFoldingAtHomeControl/actions?workflow=Python+package)
@@ -34,8 +34,6 @@ if __name__ == '__main__':
     Controller = FoldingAtHomeController("localhost")
     Controller.register_callback(callback)
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(Controller.try_connect_async(5))
-    loop.run_until_complete(Controller.subscribe_async())
     task = loop.create_task(Controller.start())
     try:
         loop.run_until_complete(task)
