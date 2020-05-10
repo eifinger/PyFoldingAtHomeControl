@@ -248,7 +248,7 @@ class FoldingAtHomeController:
         """Send a list of command."""
         if not self.is_connected:
             raise FoldingAtHomeControlNotConnected
-        command_package = "\n".join(commands)
+        command_package = "\n".join(commands) + "\n"
         await self._serialconnection.send_async(command_package)
 
     @property
