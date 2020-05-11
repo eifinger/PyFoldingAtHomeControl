@@ -14,6 +14,7 @@ from .const import (
     PY_ON_MESSAGE_HEADER,
     SUBSCRIBE_COMMANDS,
     UNAUTHENTICATED_INDICATOR,
+    UNSUBSCRIBE_ALL_COMMAND,
     PyOnMessageTypes,
 )
 from .exceptions import (
@@ -29,7 +30,6 @@ _LOGGER = logging.getLogger(__name__)
 RETRY_WAIT_IN_SECONDS = 10
 MAX_AUTHENTICATION_MESSAGE_COUNT = 5
 CONNECT_TIMEOUT_IN_SECONDS = 5
-SUBSCRIPTION_UPDATE_RATE_IN_SECONDS = 5
 
 
 class FoldingAtHomeController:
@@ -42,6 +42,7 @@ class FoldingAtHomeController:
         password: Optional[str] = None,
         reconnect_enabled: bool = True,
         read_timeout: int = 15,
+        update_rate: int = 5,
     ) -> None:
         """Initialize connection data."""
         self._serialconnection = SerialConnection(address, port, password, read_timeout)
@@ -51,6 +52,7 @@ class FoldingAtHomeController:
         self._connect_task: Optional[asyncio.Future[None]] = None
         self._on_disconnect: Optional[Callable] = None
         self._subscription_counter: int = 0
+        self._update_rate = update_rate
 
     async def try_connect_async(self, timeout: int) -> None:
         """Try to connect with timeout."""
@@ -116,16 +118,27 @@ class FoldingAtHomeController:
         """Set the read timeout in seconds."""
         await self._serialconnection.set_read_timeout_async(timeout)
 
+    async def set_subscription_update_rate(self, update_rate: int) -> None:
+        """Set the subscription update rate in seconds."""
+        self._update_rate = update_rate
+        if self._subscription_counter > 0:
+            await self.unsubscribe_all_async()
+            await self.subscribe_async()
+
     async def subscribe_async(  # pylint: disable=dangerous-default-value
         self, commands: list = SUBSCRIBE_COMMANDS
     ) -> None:
         """Start a subscription to commands."""
         subscriptions = []
         for command in commands:
-            subscription = f"updates add {self._get_next_subscription_id()} {SUBSCRIPTION_UPDATE_RATE_IN_SECONDS} ${command}"  # pylint: disable=line-too-long
+            subscription = f"updates add {self._get_next_subscription_id()} {self._update_rate} ${command}"  # pylint: disable=line-too-long
             subscriptions.append(subscription)
 
         await self._send_commands_async(subscriptions)
+
+    async def unsubscribe_all_async(self) -> None:
+        """Unsubscribe all subscriptions."""
+        await self._send_command_async(UNSUBSCRIBE_ALL_COMMAND)
 
     async def start(self, connect: bool = True, subscribe: bool = True) -> None:
         """Start listening to the socket."""
@@ -258,8 +271,13 @@ class FoldingAtHomeController:
 
     @property
     def read_timeout(self) -> int:
-        """The configured read timeout."""
+        """The configured read timeout in seconds."""
         return self._serialconnection.read_timeout
+
+    @property
+    def update_rate(self) -> int:
+        """The subscription update rate in seconds."""
+        return self._update_rate
 
 
 def get_message_type_from_message(message: str) -> str:
