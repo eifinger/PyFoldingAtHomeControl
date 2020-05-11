@@ -114,9 +114,9 @@ class FoldingAtHomeController:
 
         return remove_callback
 
-    async def set_read_timeout_async(self, timeout: int) -> None:
+    def set_read_timeout(self, timeout: int) -> None:
         """Set the read timeout in seconds."""
-        await self._serialconnection.set_read_timeout_async(timeout)
+        self._serialconnection.set_read_timeout(timeout)
 
     async def set_subscription_update_rate_async(self, update_rate: int) -> None:
         """Set the subscription update rate in seconds."""

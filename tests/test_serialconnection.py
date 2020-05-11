@@ -44,9 +44,8 @@ async def test_read_raises_after_timeout(serialconnection):
             assert not serialconnection.is_connected
 
 
-@pytest.mark.asyncio
-async def test_set_read_timeout(serialconnection):
+def test_set_read_timeout(serialconnection):
     """Test setting the read timeout works."""
     assert serialconnection.read_timeout == 0.5
-    await serialconnection.set_read_timeout_async(5)
+    serialconnection.set_read_timeout(5)
     assert serialconnection.read_timeout == 5

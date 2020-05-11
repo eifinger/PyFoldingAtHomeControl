@@ -276,11 +276,10 @@ async def test_parse_error(
             callback.assert_called()
 
 
-@pytest.mark.asyncio
-async def test_set_read_timeout(foldingathomecontroller):
+def test_set_read_timeout(foldingathomecontroller):
     """Test setting the read timeout works."""
     assert foldingathomecontroller.read_timeout == 15
-    await foldingathomecontroller.set_read_timeout_async(10)
+    foldingathomecontroller.set_read_timeout(10)
     assert foldingathomecontroller.read_timeout == 10
 
 @pytest.mark.asyncio
