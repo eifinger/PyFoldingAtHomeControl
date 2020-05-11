@@ -287,5 +287,5 @@ async def test_set_read_timeout(foldingathomecontroller):
 async def test_set_subscription_update_rate(foldingathomecontroller):
     """Test setting the update rate works."""
     assert foldingathomecontroller.update_rate == 5
-    await foldingathomecontroller.set_subscription_update_rate(10)
+    await foldingathomecontroller.set_subscription_update_rate_async(10)
     assert foldingathomecontroller.update_rate == 10    

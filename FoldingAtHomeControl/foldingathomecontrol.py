@@ -118,7 +118,7 @@ class FoldingAtHomeController:
         """Set the read timeout in seconds."""
         await self._serialconnection.set_read_timeout_async(timeout)
 
-    async def set_subscription_update_rate(self, update_rate: int) -> None:
+    async def set_subscription_update_rate_async(self, update_rate: int) -> None:
         """Set the subscription update rate in seconds."""
         self._update_rate = update_rate
         if self._subscription_counter > 0:
