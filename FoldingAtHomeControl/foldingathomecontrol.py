@@ -49,7 +49,7 @@ class FoldingAtHomeController:
         self._reconnect_enabled: bool = reconnect_enabled
 
         self._callbacks: dict = {}
-        self._connect_task: Optional[asyncio.Future[None]] = None
+        self._connect_task: Optional[asyncio.Future] = None
         self._on_disconnect: Optional[Callable] = None
         self._subscription_counter: int = 0
         self._update_rate = update_rate
