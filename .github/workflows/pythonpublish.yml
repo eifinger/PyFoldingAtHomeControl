@@ -21,11 +21,11 @@ jobs:
         python-version: '3.x'
     - name: Install dependencies
       run: |
-      python -m pip install --upgrade pip flit
-      flit install
+        python -m pip install --upgrade pip flit
+        flit install
     - name: Build and publish
       env:
         FLIT_USERNAME: __token__
         FLIT_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
-      flit --repository pypi publish
+        flit --repository pypi publish
