@@ -1,5 +1,10 @@
 """Tests for foldingathomecontrol"""
 import asyncio
+
+try:
+    from asyncio.streams import IncompleteReadError  # type: ignore
+except ImportError:
+    from asyncio import IncompleteReadError  # type: ignore
 from asyncio.streams import StreamReader
 from unittest.mock import MagicMock, patch
 
@@ -123,10 +128,10 @@ async def test_controller_disconnects_on_IncompleteReadError(
     future.set_result((stream_reader, stream_writer))
     with patch("asyncio.open_connection", return_value=future):
         await disconnecting_foldingathomecontroller.try_connect_async(timeout=5)
-        stream_reader.readuntil.side_effect = asyncio.streams.IncompleteReadError(
-            [None], 5
+        stream_reader.readuntil.side_effect = IncompleteReadError([None], 5)
+        await disconnecting_foldingathomecontroller.start(
+            connect=False, subscribe=False
         )
-        await disconnecting_foldingathomecontroller.start(connect=False, subscribe=False)
         assert not disconnecting_foldingathomecontroller.is_connected
 
 
@@ -145,11 +150,11 @@ async def test_controller_calls_on_disconnect_on_IncompleteReadError(
     future.set_result((stream_reader, stream_writer))
     with patch("asyncio.open_connection", return_value=future):
         await disconnecting_foldingathomecontroller.try_connect_async(timeout=5)
-        stream_reader.readuntil.side_effect = asyncio.streams.IncompleteReadError(
-            [None], 5
-        )
+        stream_reader.readuntil.side_effect = IncompleteReadError([None], 5)
         disconnecting_foldingathomecontroller.on_disconnect(callback)
-        await disconnecting_foldingathomecontroller.start(connect=False, subscribe=False)
+        await disconnecting_foldingathomecontroller.start(
+            connect=False, subscribe=False
+        )
         assert not disconnecting_foldingathomecontroller.is_connected
         callback.assert_called()
 
@@ -166,10 +171,10 @@ async def test_controller_reconnects(foldingathomecontroller):
     future.set_result((stream_reader, stream_writer))
     with patch("asyncio.open_connection", return_value=future):
         await foldingathomecontroller.try_connect_async(timeout=5)
-        stream_reader.readuntil.side_effect = asyncio.streams.IncompleteReadError(
-            [None], 5
+        stream_reader.readuntil.side_effect = IncompleteReadError([None], 5)
+        task = asyncio.get_event_loop().create_task(
+            foldingathomecontroller.start(connect=False, subscribe=False)
         )
-        task = asyncio.get_event_loop().create_task(foldingathomecontroller.start(connect=False, subscribe=False))
         _, pending = await asyncio.wait([task], timeout=0.5)
         assert task in pending
         try:
@@ -282,9 +287,10 @@ def test_set_read_timeout(foldingathomecontroller):
     foldingathomecontroller.set_read_timeout(10)
     assert foldingathomecontroller.read_timeout == 10
 
+
 @pytest.mark.asyncio
 async def test_set_subscription_update_rate(foldingathomecontroller):
     """Test setting the update rate works."""
     assert foldingathomecontroller.update_rate == 5
     await foldingathomecontroller.set_subscription_update_rate_async(10)
-    assert foldingathomecontroller.update_rate == 10    
+    assert foldingathomecontroller.update_rate == 10

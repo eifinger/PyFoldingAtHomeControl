@@ -2,6 +2,11 @@
 import asyncio
 import logging
 from asyncio import Future, Lock, StreamReader, StreamWriter
+
+try:
+    from asyncio.streams import IncompleteReadError  # type: ignore
+except ImportError:
+    from asyncio import IncompleteReadError  # type: ignore
 from typing import Any, Optional
 
 from .exceptions import (
@@ -111,7 +116,7 @@ class SerialConnection:
                     raise FoldingAtHomeControlConnectionFailed
                 future_results = await asyncio.gather(*completed)
                 await asyncio.gather(*pending)
-            except asyncio.streams.IncompleteReadError as error:
+            except IncompleteReadError as error:
                 self._is_connected = False
                 raise error
             return future_results[0].decode()

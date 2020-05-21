@@ -1,5 +1,11 @@
 """Get Information on your Folding@Home Clients."""
 import asyncio
+from asyncio import CancelledError
+
+try:
+    from asyncio.streams import IncompleteReadError  # type: ignore
+except ImportError:
+    from asyncio import IncompleteReadError  # type: ignore
 import logging
 from typing import Callable, Optional
 from uuid import uuid4
@@ -85,7 +91,7 @@ class FoldingAtHomeController:
                     self._serialconnection.port,
                 )
                 raise FoldingAtHomeControlConnectionFailed
-        except asyncio.streams.IncompleteReadError:
+        except IncompleteReadError:
             raise FoldingAtHomeControlConnectionFailed
 
     async def connect_async(self) -> None:
@@ -150,7 +156,7 @@ class FoldingAtHomeController:
             try:
                 await self._try_parse_pyon_message_async()
             except (
-                asyncio.streams.IncompleteReadError,
+                IncompleteReadError,
                 FoldingAtHomeControlConnectionFailed,
             ):
                 await self._call_on_disconnect_async()
@@ -240,7 +246,9 @@ class FoldingAtHomeController:
         """Reset the subscription counter to 0."""
         self._subscription_counter = 0
 
-    async def cleanup_async(self, cancelled_error: Optional[Exception] = None) -> None:
+    async def cleanup_async(
+        self, cancelled_error: Optional[CancelledError] = None
+    ) -> None:
         """Clean up running tasks and writers."""
         if self._connect_task is not None:
             self._connect_task.cancel()
