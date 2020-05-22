@@ -19,9 +19,9 @@ jobs:
         python-version: [3.6, 3.7, 3.8]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2.1.1
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -44,7 +44,7 @@ jobs:
     - name: Test coverage
       run: |
         pytest --verbose --cov-report term-missing --cov-report xml --cov=FoldingAtHomeControl tests
-    - uses: codecov/codecov-action@v1.0.2
+    - uses: codecov/codecov-action@v1.0.7
       with:
         token: ${{secrets.CODECOV}}
         file: ./coverage.xml
