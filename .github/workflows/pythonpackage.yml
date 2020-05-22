@@ -26,24 +26,16 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip flit
-        flit install
-    - name: Lint with flake8
+        make init
+    - name: Lint
       run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Check with black
+        make lint
+    - name: Type checking with mypy
       run: |
-        black --check FoldingAtHomeControl
-        # pylint --rcfile=.pylintrc FoldingAtHomeControl
-    - name: Typ checking with mypy
-      run: |
-        mypy FoldingAtHomeControl
+        make typing
     - name: Test coverage
       run: |
-        pytest --verbose --cov-report term-missing --cov-report xml --cov=FoldingAtHomeControl tests
+        make coverage
     - uses: codecov/codecov-action@v1.0.7
       with:
         token: ${{secrets.CODECOV}}

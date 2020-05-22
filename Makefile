@@ -1,6 +1,6 @@
 .PHONY: clean coverage beta test lint typing
 init:
-	pip install flit
+	python -m pip install --upgrade pip flit
 	flit install
 	pre-commit install
 coverage:
@@ -18,6 +18,7 @@ test:
 lint:
 	flake8 FoldingAtHomeControl
 	pylint --rcfile=.pylintrc FoldingAtHomeControl
+	black --check FoldingAtHomeControl
 typing:
 	mypy FoldingAtHomeControl
 all: test lint typing
