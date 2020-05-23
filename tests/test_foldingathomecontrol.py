@@ -6,7 +6,17 @@ try:
 except ImportError:
     from asyncio import IncompleteReadError  # type: ignore
 from asyncio.streams import StreamReader
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
+
+try:
+    from unittest.mock import AsyncMock as MagicMock
+except ImportError:
+    from unittest.mock import MagicMock
+
+    async def async_magic():
+        pass
+
+    MagicMock.__await__ = lambda x: async_magic().__await__()
 
 import pytest
 
@@ -17,13 +27,6 @@ from FoldingAtHomeControl import (
     FoldingAtHomeControlNotConnected,
     FoldingAtHomeControlConnectionFailed,
 )
-
-
-async def async_magic():
-    pass
-
-
-MagicMock.__await__ = lambda x: async_magic().__await__()
 
 
 @pytest.fixture
@@ -97,6 +100,85 @@ def pyon_options_prepared_stream_reader(connection_prepared_stream_reader):
     return connection_prepared_stream_reader
 
 
+@pytest.fixture
+def patched_open_connection(event_loop):
+    """Return a tuple of patched stream_reader and stream_writer."""
+    stream_reader = MagicMock()
+    stream_writer = MagicMock()
+    if asyncio.iscoroutinefunction(stream_reader):
+        # Python 3.8.2 and later
+        return_value = (stream_reader, stream_writer)
+        stream_reader.readuntil.return_value = bytes(10)
+    else:
+        # Python 3.8.0 and earlier
+        return_value = event_loop.create_future()
+        return_value.set_result((stream_reader, stream_writer))
+        reader_future = event_loop.create_future()
+        reader_future.set_result(bytes(10))
+        stream_reader.readuntil.return_value = reader_future
+    return return_value
+
+
+@pytest.fixture
+def patched_auth_succeeded_open_connection(
+    auth_succeeded_prepared_stream_reader, event_loop
+):
+    """Return a tuple of patched stream_reader and stream_writer."""
+    stream_writer = MagicMock()
+    if asyncio.iscoroutinefunction(stream_writer):
+        # Python 3.8.2 and later
+        return_value = (auth_succeeded_prepared_stream_reader, stream_writer)
+    else:
+        # Python 3.8.0 and earlier
+        return_value = event_loop.create_future()
+        return_value.set_result((auth_succeeded_prepared_stream_reader, stream_writer))
+    return return_value
+
+
+@pytest.fixture
+def patched_auth_failed_open_connection(auth_failed_prepared_stream_reader, event_loop):
+    """Return a tuple of patched stream_reader and stream_writer."""
+    stream_writer = MagicMock()
+    if asyncio.iscoroutinefunction(stream_writer):
+        # Python 3.8.2 and later
+        return_value = (auth_failed_prepared_stream_reader, stream_writer)
+    else:
+        # Python 3.8.0 and earlier
+        return_value = event_loop.create_future()
+        return_value.set_result((auth_failed_prepared_stream_reader, stream_writer))
+    return return_value
+
+
+@pytest.fixture
+def patched_error_prepared_open_connection(error_prepared_stream_reader, event_loop):
+    """Return a tuple of patched stream_reader and stream_writer."""
+    stream_writer = MagicMock()
+    if asyncio.iscoroutinefunction(stream_writer):
+        # Python 3.8.2 and later
+        return_value = (error_prepared_stream_reader, stream_writer)
+    else:
+        # Python 3.8.0 and earlier
+        return_value = event_loop.create_future()
+        return_value.set_result((error_prepared_stream_reader, stream_writer))
+    return return_value
+
+
+@pytest.fixture
+def patched_pyon_options_prepared_open_connection(
+    pyon_options_prepared_stream_reader, event_loop
+):
+    """Return a tuple of patched stream_reader and stream_writer."""
+    stream_writer = MagicMock()
+    if asyncio.iscoroutinefunction(stream_writer):
+        # Python 3.8.2 and later
+        return_value = (pyon_options_prepared_stream_reader, stream_writer)
+    else:
+        # Python 3.8.0 and earlier
+        return_value = event_loop.create_future()
+        return_value.set_result((pyon_options_prepared_stream_reader, stream_writer))
+    return return_value
+
+
 @pytest.mark.asyncio
 async def test_request_work_server_assignment_raises_when_not_connected(
     foldingathomecontroller,
@@ -116,18 +198,12 @@ async def test_controller_catches_ConnectionError(foldingathomecontroller,):
 
 @pytest.mark.asyncio
 async def test_controller_disconnects_on_IncompleteReadError(
-    disconnecting_foldingathomecontroller,
+    disconnecting_foldingathomecontroller, patched_open_connection
 ):
     """Test that a IncompleteReadError is caught and leads to a reconnect."""
-    stream_reader = MagicMock()
-    reader_future = asyncio.Future()
-    reader_future.set_result(bytes(10))
-    stream_reader.readuntil.return_value = reader_future
-    stream_writer = MagicMock()
-    future = asyncio.Future()
-    future.set_result((stream_reader, stream_writer))
-    with patch("asyncio.open_connection", return_value=future):
+    with patch("asyncio.open_connection", return_value=patched_open_connection):
         await disconnecting_foldingathomecontroller.try_connect_async(timeout=5)
+        stream_reader, _ = await asyncio.open_connection("localhost")
         stream_reader.readuntil.side_effect = IncompleteReadError([None], 5)
         await disconnecting_foldingathomecontroller.start(
             connect=False, subscribe=False
@@ -137,19 +213,13 @@ async def test_controller_disconnects_on_IncompleteReadError(
 
 @pytest.mark.asyncio
 async def test_controller_calls_on_disconnect_on_IncompleteReadError(
-    disconnecting_foldingathomecontroller,
+    disconnecting_foldingathomecontroller, patched_open_connection
 ):
     """Test that a IncompleteReadError is caught and calls on_disconnect()."""
     callback = MagicMock()
-    stream_reader = MagicMock()
-    reader_future = asyncio.Future()
-    reader_future.set_result(bytes(10))
-    stream_reader.readuntil.return_value = reader_future
-    stream_writer = MagicMock()
-    future = asyncio.Future()
-    future.set_result((stream_reader, stream_writer))
-    with patch("asyncio.open_connection", return_value=future):
+    with patch("asyncio.open_connection", return_value=patched_open_connection):
         await disconnecting_foldingathomecontroller.try_connect_async(timeout=5)
+        stream_reader, _ = await asyncio.open_connection("localhost")
         stream_reader.readuntil.side_effect = IncompleteReadError([None], 5)
         disconnecting_foldingathomecontroller.on_disconnect(callback)
         await disconnecting_foldingathomecontroller.start(
@@ -160,17 +230,11 @@ async def test_controller_calls_on_disconnect_on_IncompleteReadError(
 
 
 @pytest.mark.asyncio
-async def test_controller_reconnects(foldingathomecontroller):
+async def test_controller_reconnects(foldingathomecontroller, patched_open_connection):
     """Test that the controller reconnects."""
-    stream_reader = MagicMock()
-    reader_future = asyncio.Future()
-    reader_future.set_result(bytes(10))
-    stream_reader.readuntil.return_value = reader_future
-    stream_writer = MagicMock()
-    future = asyncio.Future()
-    future.set_result((stream_reader, stream_writer))
-    with patch("asyncio.open_connection", return_value=future):
+    with patch("asyncio.open_connection", return_value=patched_open_connection):
         await foldingathomecontroller.try_connect_async(timeout=5)
+        stream_reader, _ = await asyncio.open_connection("localhost")
         stream_reader.readuntil.side_effect = IncompleteReadError([None], 5)
         task = asyncio.get_event_loop().create_task(
             foldingathomecontroller.start(connect=False, subscribe=False)
@@ -185,16 +249,11 @@ async def test_controller_reconnects(foldingathomecontroller):
 
 
 @pytest.mark.asyncio
-async def test_controller_cleans_up_on_cancel(foldingathomecontroller):
+async def test_controller_cleans_up_on_cancel(
+    foldingathomecontroller, patched_open_connection
+):
     """Test that the controller cleans up."""
-    stream_reader = MagicMock()
-    reader_future = asyncio.Future()
-    reader_future.set_result(bytes(10))
-    stream_reader.readuntil.return_value = reader_future
-    stream_writer = MagicMock()
-    future = asyncio.Future()
-    future.set_result((stream_reader, stream_writer))
-    with patch("asyncio.open_connection", return_value=future):
+    with patch("asyncio.open_connection", return_value=patched_open_connection):
         task = asyncio.ensure_future(foldingathomecontroller.start())
         with pytest.raises(asyncio.CancelledError):
             await asyncio.sleep(0.5)
@@ -204,16 +263,11 @@ async def test_controller_cleans_up_on_cancel(foldingathomecontroller):
 
 
 @pytest.mark.asyncio
-async def test_controller_connects_on_start(foldingathomecontroller):
+async def test_controller_connects_on_start(
+    foldingathomecontroller, patched_open_connection
+):
     """Test that the controller connects when start() is called."""
-    stream_reader = MagicMock()
-    reader_future = asyncio.Future()
-    reader_future.set_result(bytes(10))
-    stream_reader.readuntil.return_value = reader_future
-    stream_writer = MagicMock()
-    future = asyncio.Future()
-    future.set_result((stream_reader, stream_writer))
-    with patch("asyncio.open_connection", return_value=future):
+    with patch("asyncio.open_connection", return_value=patched_open_connection):
         task = asyncio.ensure_future(foldingathomecontroller.start())
         await asyncio.sleep(0.5)
         assert foldingathomecontroller.is_connected
@@ -226,39 +280,37 @@ async def test_controller_connects_on_start(foldingathomecontroller):
 
 @pytest.mark.asyncio
 async def test_auth_succeeded(
-    auth_foldingathomecontroller, auth_succeeded_prepared_stream_reader
+    auth_foldingathomecontroller, patched_auth_succeeded_open_connection
 ):
     """Test that authenticating works."""
-    stream_writer = MagicMock()
-    future = asyncio.Future()
-    future.set_result((auth_succeeded_prepared_stream_reader, stream_writer))
-    with patch("asyncio.open_connection", return_value=future):
+    with patch(
+        "asyncio.open_connection", return_value=patched_auth_succeeded_open_connection
+    ):
         await auth_foldingathomecontroller.try_connect_async(timeout=5)
         assert auth_foldingathomecontroller.is_connected
 
 
 @pytest.mark.asyncio
 async def test_auth_failed(
-    auth_foldingathomecontroller, auth_failed_prepared_stream_reader
+    auth_foldingathomecontroller, patched_auth_failed_open_connection
 ):
     """Test that authenticating works."""
-    stream_writer = MagicMock()
-    future = asyncio.Future()
-    future.set_result((auth_failed_prepared_stream_reader, stream_writer))
-    with patch("asyncio.open_connection", return_value=future):
+    with patch(
+        "asyncio.open_connection", return_value=patched_auth_failed_open_connection
+    ):
         with pytest.raises(FoldingAtHomeControlAuthenticationFailed):
             await auth_foldingathomecontroller.try_connect_async(timeout=5)
 
 
 @pytest.mark.asyncio
 async def test_parse_pyon_options(
-    disconnecting_foldingathomecontroller, pyon_options_prepared_stream_reader
+    disconnecting_foldingathomecontroller, patched_pyon_options_prepared_open_connection
 ):
     """Test that parsing a pyon message works."""
-    stream_writer = MagicMock()
-    future = asyncio.Future()
-    future.set_result((pyon_options_prepared_stream_reader, stream_writer))
-    with patch("asyncio.open_connection", return_value=future):
+    with patch(
+        "asyncio.open_connection",
+        return_value=patched_pyon_options_prepared_open_connection,
+    ):
         callback = MagicMock()
         disconnecting_foldingathomecontroller.register_callback(callback)
         await disconnecting_foldingathomecontroller.start()
@@ -267,13 +319,12 @@ async def test_parse_pyon_options(
 
 @pytest.mark.asyncio
 async def test_parse_error(
-    disconnecting_foldingathomecontroller, error_prepared_stream_reader
+    disconnecting_foldingathomecontroller, patched_error_prepared_open_connection
 ):
     """Test that parsing a pyon message works."""
-    stream_writer = MagicMock()
-    future = asyncio.Future()
-    future.set_result((error_prepared_stream_reader, stream_writer))
-    with patch("asyncio.open_connection", return_value=future):
+    with patch(
+        "asyncio.open_connection", return_value=patched_error_prepared_open_connection
+    ):
         callback = MagicMock()
         disconnecting_foldingathomecontroller.register_callback(callback)
         with pytest.raises(FoldingAtHomeControlAuthenticationRequired):
