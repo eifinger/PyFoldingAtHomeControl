@@ -1,5 +1,11 @@
 """Get Information on your Folding@Home Clients."""
 import asyncio
+from asyncio import CancelledError
+
+try:
+    from asyncio.streams import IncompleteReadError  # type: ignore
+except ImportError:
+    from asyncio import IncompleteReadError  # type: ignore
 import logging
 from typing import Callable, Optional
 from uuid import uuid4
@@ -24,11 +30,6 @@ from .exceptions import (
 )
 from .pyonparser import convert_pyon_to_json
 from .serialconnection import SerialConnection
-
-try:
-    from asyncio.streams import IncompleteReadError  # type: ignore
-except ImportError:
-    from asyncio.exceptions import IncompleteReadError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -101,7 +102,7 @@ class FoldingAtHomeController:
             except FoldingAtHomeControlConnectionFailed:
                 await asyncio.sleep(RETRY_WAIT_IN_SECONDS)
             except asyncio.CancelledError as cancelled_error:
-                await self.cleanup_async(cancelled_error)  # type: ignore
+                await self.cleanup_async(cancelled_error)
 
     def on_disconnect(self, func: Callable) -> None:
         """Register a method to be executed when the connection is disconnected."""
@@ -161,7 +162,7 @@ class FoldingAtHomeController:
                 await self._call_on_disconnect_async()
             except asyncio.CancelledError as cancelled_error:
                 _LOGGER.debug("Got cancelled.")
-                await self.cleanup_async(cancelled_error)  # type: ignore
+                await self.cleanup_async(cancelled_error)
         _LOGGER.debug("Start ended.")
 
     async def request_work_server_assignment_async(self) -> None:
@@ -245,7 +246,9 @@ class FoldingAtHomeController:
         """Reset the subscription counter to 0."""
         self._subscription_counter = 0
 
-    async def cleanup_async(self, cancelled_error: Optional[Exception] = None) -> None:
+    async def cleanup_async(
+        self, cancelled_error: Optional[CancelledError] = None
+    ) -> None:
         """Clean up running tasks and writers."""
         if self._connect_task is not None:
             self._connect_task.cancel()

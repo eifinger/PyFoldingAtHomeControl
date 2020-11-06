@@ -6,7 +6,7 @@ from asyncio import Future, Lock, StreamReader, StreamWriter
 try:
     from asyncio.streams import IncompleteReadError  # type: ignore
 except ImportError:
-    from asyncio.exceptions import IncompleteReadError
+    from asyncio import IncompleteReadError  # type: ignore
 from typing import Any, Optional
 
 from .exceptions import (
