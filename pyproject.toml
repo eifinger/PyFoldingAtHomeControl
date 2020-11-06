@@ -34,3 +34,7 @@ test = [
     "pre-commit",
     "black"
 ]
+
+[tool.semantic_release]
+version_variable="FoldingAtHomeControl/__init__.py:__version__"
+build_command="flit build"
