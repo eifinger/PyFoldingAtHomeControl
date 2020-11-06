@@ -6,7 +6,7 @@ from asyncio import Future, Lock, StreamReader, StreamWriter
 try:
     from asyncio.streams import IncompleteReadError  # type: ignore
 except ImportError:
-    from asyncio import IncompleteReadError  # type: ignore
+    from asyncio.exceptions import IncompleteReadError
 from typing import Any, Optional
 
 from .exceptions import (
@@ -42,7 +42,7 @@ class SerialConnection:
         self._is_authenticated: bool = False
         self._reader_lock: Lock = Lock()
         self._writer_lock: Lock = Lock()
-        self._read_future: Optional[Future] = None
+        self._read_future: Optional[Future[bytes]] = None
 
     async def connect_async(self) -> None:
         """Open the connection to the socket."""

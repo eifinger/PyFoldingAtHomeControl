@@ -189,7 +189,9 @@ async def test_request_work_server_assignment_raises_when_not_connected(
 
 
 @pytest.mark.asyncio
-async def test_controller_catches_ConnectionError(foldingathomecontroller,):
+async def test_controller_catches_ConnectionError(
+    foldingathomecontroller,
+):
     """Test that all Connectionerrors are caught."""
     with patch("asyncio.open_connection", side_effect=ConnectionError()):
         with pytest.raises(FoldingAtHomeControlConnectionFailed):
