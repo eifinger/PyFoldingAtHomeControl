@@ -42,7 +42,7 @@ class SerialConnection:
         self._is_authenticated: bool = False
         self._reader_lock: Lock = Lock()
         self._writer_lock: Lock = Lock()
-        self._read_future: Optional[Future[bytes]] = None
+        self._read_future: Optional[Future] = None
 
     async def connect_async(self) -> None:
         """Open the connection to the socket."""

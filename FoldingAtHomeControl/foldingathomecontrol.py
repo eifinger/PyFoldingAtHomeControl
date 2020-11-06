@@ -54,7 +54,7 @@ class FoldingAtHomeController:
         self._reconnect_enabled: bool = reconnect_enabled
 
         self._callbacks: dict = {}
-        self._connect_task: Optional[asyncio.Future[None]] = None
+        self._connect_task: Optional[asyncio.Future] = None
         self._on_disconnect: Optional[Callable] = None
         self._subscription_counter: int = 0
         self._update_rate = update_rate
@@ -83,15 +83,15 @@ class FoldingAtHomeController:
             try:
                 await asyncio.gather(*completed)
                 await asyncio.gather(*pending)
-            except OSError:
+            except OSError as error:
                 _LOGGER.debug(
                     "Could not connect to %s:%d",
                     self._serialconnection.address,
                     self._serialconnection.port,
                 )
-                raise FoldingAtHomeControlConnectionFailed
-        except IncompleteReadError:
-            raise FoldingAtHomeControlConnectionFailed
+                raise FoldingAtHomeControlConnectionFailed from error
+        except IncompleteReadError as incomplete_error:
+            raise FoldingAtHomeControlConnectionFailed from incomplete_error
 
     async def connect_async(self) -> None:
         """Try until connect succeeds."""
