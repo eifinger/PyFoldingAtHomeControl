@@ -37,4 +37,4 @@ test = [
 
 [tool.semantic_release]
 version_variable="FoldingAtHomeControl/__init__.py:__version__"
-build_command="flit build"
+build_command="python -m flit build"
