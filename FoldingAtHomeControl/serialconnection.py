@@ -138,6 +138,7 @@ class SerialConnection:
         if hasattr(self, "_writer"):
             await self._writer.drain()
             self._writer.close()
+            await self._writer.wait_closed()
         _LOGGER.info("Cleanup finished")
 
     @property
