@@ -233,6 +233,7 @@ class FoldingAtHomeController:
                 await self._on_disconnect()
             else:
                 self._on_disconnect()
+        await self.cleanup_async()
         if self._reconnect_enabled:
             await self.connect_async()
             await self.subscribe_async()

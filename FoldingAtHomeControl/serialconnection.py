@@ -130,12 +130,15 @@ class SerialConnection:
     async def cleanup_async(self) -> None:
         """Clean up running tasks and writers."""
         if self._read_future is not None:
-            self._read_future.cancel()
-            await self._read_future
+            try:
+                self._read_future.cancel()
+                await self._read_future
+            except (asyncio.CancelledError, IncompleteReadError):
+                pass
         if hasattr(self, "_writer"):
             await self._writer.drain()
             self._writer.close()
-        _LOGGER.info("Got Cancelled")
+        _LOGGER.info("Cleanup finished")
 
     @property
     def address(self) -> str:
