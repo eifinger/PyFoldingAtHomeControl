@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v1.6.8 (2021-05-02)
+### Fix
+* Cleanup serialconnection on connection loss ([`b6f41ca`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/b6f41cae9c4a2d6a9ad1e0e92ffb89adf1a09e8a))
+
 ## v1.6.7 (2020-11-06)
 ### Fix
 * Rename pipeline ([`60235ee`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/60235ee8930315f5770ad319b9705dcded7199fd))
