@@ -10,4 +10,4 @@ from .exceptions import (  # noqa
 )
 from .const import PyOnMessageTypes  # noqa
 
-__version__ = "1.6.8"
+__version__ = "2.0.0"

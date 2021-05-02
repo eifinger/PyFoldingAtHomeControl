@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v2.0.0 (2021-05-02)
+### Fix
+* Await writer closed ([`c4c93b8`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/c4c93b8e62f3c690cea7e67a3d2b5c2973b62b97))
+
+### Breaking
+* Remove Python 3.6 support  ([`c4c93b8`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/c4c93b8e62f3c690cea7e67a3d2b5c2973b62b97))
+
 ## v1.6.8 (2021-05-02)
 ### Fix
 * Cleanup serialconnection on connection loss ([`b6f41ca`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/b6f41cae9c4a2d6a9ad1e0e92ffb89adf1a09e8a))
