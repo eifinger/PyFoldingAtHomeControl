@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v2.0.1 (2021-05-12)
+### Fix
+* Send heartbeat command to keep con alive ([`2a45582`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/2a4558200841f9ab5d556d823f6753a20cee2ff5))
+
 ## v2.0.0 (2021-05-02)
 ### Fix
 * Await writer closed ([`c4c93b8`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/c4c93b8e62f3c690cea7e67a3d2b5c2973b62b97))
