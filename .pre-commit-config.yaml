@@ -7,16 +7,16 @@ repos:
     - id: black
       name: black
       language: system
-      entry: black
+      entry: poetry run black
       types: [python]
     - id: flake8
       name: flake8
       language: system
-      entry: flake8
+      entry: poetry run flake8
       types: [python]
     - id: mypy
       name: mypy
       language: system
-      entry: mypy
+      entry: poetry run mypy
       types: [python]
       exclude: tests/

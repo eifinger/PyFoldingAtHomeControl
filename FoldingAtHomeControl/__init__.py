@@ -9,5 +9,3 @@ from .exceptions import (  # noqa
     FoldingAtHomeControlNotConnected,
 )
 from .const import PyOnMessageTypes  # noqa
-
-__version__ = "2.0.1"

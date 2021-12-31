@@ -1,40 +1,51 @@
 [build-system]
-requires = ["flit"]
-build-backend = "flit.buildapi"
+requires = ["poetry_core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
-[tool.flit.metadata]
-module = "FoldingAtHomeControl"
-dist-name = "PyFoldingAtHomeControl"
-author = "eifinger"
-author-email = "k.eifinger@googlemail.com"
-home-page = "http://github.com/eifinger/PyFoldingAtHomeControl"
+[tool.poetry]
+name = "PyFoldingAtHomeControl"
+version = "2.0.1"
+description = "Python library to get stats from your Folding@Home Clients"
+license = "MIT"
+authors = ["Kevin Stillhammer <kevin.stillhammer@gmail.com>"]
+readme = "README.md"
+repository = "http://github.com/eifinger/PyFoldingAtHomeControl"
+keywords = [
+    "Folding@Home",
+    "asyncio"
+]
 classifiers = [
-        "Intended Audience :: Developers",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "License :: OSI Approved :: MIT License"
-    ]
-requires = []
-requires-python=">=3.7"
-description-file="README.md"
-
-[tool.flit.metadata.requires-extra]
-test = [
-    "pytest==6.2.3",
-    "pytest-cov==2.11.1",
-    "pytest-asyncio==0.14.0",
-    "pylint==2.8.2",
-    "tox==3.23.0",
-    "pytest-mock==3.5.1",
-    "codecov==2.1.11",
-    "flake8==3.9.0",
-    "mypy==0.812",
-    "pre-commit==2.12.0",
-    "black==21.4b2"
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: MIT License"
+]
+packages = [
+    { include = "FoldingAtHomeControl" }
 ]
 
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+pytest = "6.2.3"
+pytest-cov = "2.11.1"
+pytest-asyncio = "0.14.0"
+pytest-mock = "3.5.1"
+pylint = "2.8.2"
+tox = "3.23.0"
+codecov = "2.1.11"
+flake8 = "3.9.0"
+mypy = "0.812"
+pre-commit = "2.12.0"
+black = "21.4b2"
+
+[tool.pytest.ini_options]
+addopts = "--cov --cov-report term-missing --cov-report xml --cov=FoldingAtHomeControl tests"
+
 [tool.semantic_release]
-version_variable="FoldingAtHomeControl/__init__.py:__version__"
-build_command="pip install flit && flit build"
+version_toml = "pyproject.toml:tool.poetry.version"
+build_command = "pip install poetry && poetry build"
+commit_subject = "chore(release): {version}"
