@@ -5,7 +5,7 @@ try:
     from asyncio.streams import IncompleteReadError  # type: ignore
 except ImportError:
     from asyncio import IncompleteReadError  # type: ignore
-from asyncio.streams import StreamReader
+
 from unittest.mock import patch
 
 try:
@@ -13,170 +13,20 @@ try:
 except ImportError:
     from unittest.mock import MagicMock
 
-    async def async_magic():
+    async def async_magic() -> None:
+        """AsyncMock for python <3.8.2"""
         pass
 
-    MagicMock.__await__ = lambda x: async_magic().__await__()
+    MagicMock.__await__ = lambda _: async_magic().__await__()
 
 import pytest
 
 from FoldingAtHomeControl import (
     FoldingAtHomeControlAuthenticationFailed,
     FoldingAtHomeControlAuthenticationRequired,
-    FoldingAtHomeController,
-    FoldingAtHomeControlNotConnected,
     FoldingAtHomeControlConnectionFailed,
+    FoldingAtHomeControlNotConnected,
 )
-
-
-@pytest.fixture
-def foldingathomecontroller():
-    """Create a localhost FoldingAtHomeController."""
-    controller = FoldingAtHomeController("localhost")
-    return controller
-
-
-@pytest.fixture
-def auth_foldingathomecontroller():
-    """Create a localhost FoldingAtHomeController with a password."""
-    controller = FoldingAtHomeController("localhost", password="test")
-    return controller
-
-
-@pytest.fixture
-def disconnecting_foldingathomecontroller():
-    """Create a localhost FoldingAtHomeController."""
-    controller = FoldingAtHomeController("localhost", reconnect_enabled=False)
-    return controller
-
-
-@pytest.fixture
-def connection_prepared_stream_reader():
-    """Create a StreamReader and fill it with connection messages."""
-    reader = StreamReader()
-    reader.feed_data(
-        b"\x1b[H\x1b[2JWelcome to the Folding@home Client command server.\n"
-    )
-    return reader
-
-
-@pytest.fixture
-def error_prepared_stream_reader(connection_prepared_stream_reader):
-    """Create a StreamReader and fill it with an error message."""
-    connection_prepared_stream_reader.feed_data(
-        b"ERROR: unknown command or variable 'updates'\n"
-    )
-    connection_prepared_stream_reader.feed_eof()
-    return connection_prepared_stream_reader
-
-
-@pytest.fixture
-def auth_succeeded_prepared_stream_reader(connection_prepared_stream_reader):
-    """Create StreamReader and fill it with auth succeeded."""
-    connection_prepared_stream_reader.feed_data(b"OK\n")
-    return connection_prepared_stream_reader
-
-
-@pytest.fixture
-def auth_failed_prepared_stream_reader(connection_prepared_stream_reader):
-    """Create StreamReader and fill it with auth succeeded."""
-    connection_prepared_stream_reader.feed_data(b"FAILED\n")
-    return connection_prepared_stream_reader
-
-
-@pytest.fixture
-def pyon_options_prepared_stream_reader(connection_prepared_stream_reader):
-    """Create StreamReader and fill it with pyon options."""
-    connection_prepared_stream_reader.feed_data(b"> \n")
-    connection_prepared_stream_reader.feed_data(b"> \n")
-    connection_prepared_stream_reader.feed_data(b"> \n")
-    connection_prepared_stream_reader.feed_data(b"> \n")
-    connection_prepared_stream_reader.feed_data(b"PyON 1 options\n")
-    connection_prepared_stream_reader.feed_data(
-        b'{"allow": "127.0.0.1 192.168.0.0/24", "idle": "true", "max-packet-size": "big", "next-unit-percentage": "100", "open-web-control": "true", "passkey": "testkey", "password": "testpassword", "power": "FULL", "proxy": ":8080", "team": "1234456", "user": "testuser"}\n'
-    )
-    connection_prepared_stream_reader.feed_data(b"---\n")
-    connection_prepared_stream_reader.feed_eof()
-    return connection_prepared_stream_reader
-
-
-@pytest.fixture
-def patched_open_connection(event_loop):
-    """Return a tuple of patched stream_reader and stream_writer."""
-    stream_reader = MagicMock()
-    stream_writer = MagicMock()
-    if asyncio.iscoroutinefunction(stream_reader):
-        # Python 3.8.2 and later
-        return_value = (stream_reader, stream_writer)
-        stream_reader.readuntil.return_value = bytes(10)
-    else:
-        # Python 3.8.0 and earlier
-        return_value = event_loop.create_future()
-        return_value.set_result((stream_reader, stream_writer))
-        reader_future = event_loop.create_future()
-        reader_future.set_result(bytes(10))
-        stream_reader.readuntil.return_value = reader_future
-    return return_value
-
-
-@pytest.fixture
-def patched_auth_succeeded_open_connection(
-    auth_succeeded_prepared_stream_reader, event_loop
-):
-    """Return a tuple of patched stream_reader and stream_writer."""
-    stream_writer = MagicMock()
-    if asyncio.iscoroutinefunction(stream_writer):
-        # Python 3.8.2 and later
-        return_value = (auth_succeeded_prepared_stream_reader, stream_writer)
-    else:
-        # Python 3.8.0 and earlier
-        return_value = event_loop.create_future()
-        return_value.set_result((auth_succeeded_prepared_stream_reader, stream_writer))
-    return return_value
-
-
-@pytest.fixture
-def patched_auth_failed_open_connection(auth_failed_prepared_stream_reader, event_loop):
-    """Return a tuple of patched stream_reader and stream_writer."""
-    stream_writer = MagicMock()
-    if asyncio.iscoroutinefunction(stream_writer):
-        # Python 3.8.2 and later
-        return_value = (auth_failed_prepared_stream_reader, stream_writer)
-    else:
-        # Python 3.8.0 and earlier
-        return_value = event_loop.create_future()
-        return_value.set_result((auth_failed_prepared_stream_reader, stream_writer))
-    return return_value
-
-
-@pytest.fixture
-def patched_error_prepared_open_connection(error_prepared_stream_reader, event_loop):
-    """Return a tuple of patched stream_reader and stream_writer."""
-    stream_writer = MagicMock()
-    if asyncio.iscoroutinefunction(stream_writer):
-        # Python 3.8.2 and later
-        return_value = (error_prepared_stream_reader, stream_writer)
-    else:
-        # Python 3.8.0 and earlier
-        return_value = event_loop.create_future()
-        return_value.set_result((error_prepared_stream_reader, stream_writer))
-    return return_value
-
-
-@pytest.fixture
-def patched_pyon_options_prepared_open_connection(
-    pyon_options_prepared_stream_reader, event_loop
-):
-    """Return a tuple of patched stream_reader and stream_writer."""
-    stream_writer = MagicMock()
-    if asyncio.iscoroutinefunction(stream_writer):
-        # Python 3.8.2 and later
-        return_value = (pyon_options_prepared_stream_reader, stream_writer)
-    else:
-        # Python 3.8.0 and earlier
-        return_value = event_loop.create_future()
-        return_value.set_result((pyon_options_prepared_stream_reader, stream_writer))
-    return return_value
 
 
 @pytest.mark.asyncio
@@ -189,7 +39,7 @@ async def test_request_work_server_assignment_raises_when_not_connected(
 
 
 @pytest.mark.asyncio
-async def test_controller_catches_ConnectionError(
+async def test_controller_catches_ConnectionError(  # pylint: disable=invalid-name
     foldingathomecontroller,
 ):
     """Test that all Connectionerrors are caught."""
@@ -199,14 +49,14 @@ async def test_controller_catches_ConnectionError(
 
 
 @pytest.mark.asyncio
-async def test_controller_disconnects_on_IncompleteReadError(
+async def test_controller_disconnects_on_IncompleteReadError(  # pylint: disable=invalid-name
     disconnecting_foldingathomecontroller, patched_open_connection
 ):
     """Test that a IncompleteReadError is caught and leads to a reconnect."""
     with patch("asyncio.open_connection", return_value=patched_open_connection):
         await disconnecting_foldingathomecontroller.try_connect_async(timeout=5)
         stream_reader, _ = await asyncio.open_connection("localhost")
-        stream_reader.readuntil.side_effect = IncompleteReadError([None], 5)
+        stream_reader.readuntil.side_effect = IncompleteReadError(bytes(0), 5)
         await disconnecting_foldingathomecontroller.start(
             connect=False, subscribe=False
         )
@@ -214,7 +64,7 @@ async def test_controller_disconnects_on_IncompleteReadError(
 
 
 @pytest.mark.asyncio
-async def test_controller_calls_on_disconnect_on_IncompleteReadError(
+async def test_controller_calls_on_disconnect_on_IncompleteReadError(  # pylint: disable=invalid-name # noqa: line-too-long
     disconnecting_foldingathomecontroller, patched_open_connection
 ):
     """Test that a IncompleteReadError is caught and calls on_disconnect()."""
@@ -222,7 +72,7 @@ async def test_controller_calls_on_disconnect_on_IncompleteReadError(
     with patch("asyncio.open_connection", return_value=patched_open_connection):
         await disconnecting_foldingathomecontroller.try_connect_async(timeout=5)
         stream_reader, _ = await asyncio.open_connection("localhost")
-        stream_reader.readuntil.side_effect = IncompleteReadError([None], 5)
+        stream_reader.readuntil.side_effect = IncompleteReadError(bytes(0), 5)
         disconnecting_foldingathomecontroller.on_disconnect(callback)
         await disconnecting_foldingathomecontroller.start(
             connect=False, subscribe=False
@@ -237,7 +87,7 @@ async def test_controller_reconnects(foldingathomecontroller, patched_open_conne
     with patch("asyncio.open_connection", return_value=patched_open_connection):
         await foldingathomecontroller.try_connect_async(timeout=5)
         stream_reader, _ = await asyncio.open_connection("localhost")
-        stream_reader.readuntil.side_effect = IncompleteReadError([None], 5)
+        stream_reader.readuntil.side_effect = IncompleteReadError(bytes(0), 5)
         task = asyncio.get_event_loop().create_task(
             foldingathomecontroller.start(connect=False, subscribe=False)
         )

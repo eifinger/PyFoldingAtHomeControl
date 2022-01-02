@@ -1,11 +1,11 @@
 """Define module-level imports."""
 # pylint: disable=C0103
-from .foldingathomecontrol import FoldingAtHomeController  # noqa
+from .const import PyOnMessageTypes  # noqa
 from .exceptions import (  # noqa
-    FoldingAtHomeControlException,
     FoldingAtHomeControlAuthenticationFailed,
     FoldingAtHomeControlAuthenticationRequired,
     FoldingAtHomeControlConnectionFailed,
+    FoldingAtHomeControlException,
     FoldingAtHomeControlNotConnected,
 )
-from .const import PyOnMessageTypes  # noqa
+from .foldingathomecontrol import FoldingAtHomeController  # noqa

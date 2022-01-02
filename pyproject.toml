@@ -30,17 +30,34 @@ packages = [
 python = "^3.7"
 
 [tool.poetry.dev-dependencies]
+black = "21.4b2"
+blacken-docs = "^1.12.0"
+coverage = {version = "^6.2", extras = ["toml"]}
+bandit = "^1.7.0"
+codecov = "2.1.11"
+codespell = "^2.1.0"
+darglint = "^1.8.1"
+flake8 = "3.9.0"
+flake8-bandit = "^2.1.2"
+flake8-bugbear = "^21.11.29"
+flake8-builtins = "^1.5.3"
+flake8-comprehensions = "^3.7.0"
+flake8-docstrings = "^1.6.0"
+flake8-eradicate = "^1.2.0"
+flake8-markdown = "^0.3.0"
+flake8-simplify = "^0.14.2"
+mypy = "0.812"
+pre-commit = "2.12.0"
+pre-commit-hooks = "^4.1.0"
 pytest = "6.2.3"
 pytest-cov = "2.11.1"
 pytest-asyncio = "0.14.0"
 pytest-mock = "3.5.1"
-pylint = "2.12.2"
-tox = "3.24.5"
-codecov = "2.1.12"
-flake8 = "4.0.1"
-mypy = "0.812"
-pre-commit = "2.16.0"
-black = "21.4b2"
+pylint = "2.8.2"
+pyupgrade = "^2.30.1"
+safety = "^1.10.3"
+vulture = "^2.3"
+yamllint = "^1.26.3"
 
 [tool.pytest.ini_options]
 addopts = "--cov --cov-report term-missing --cov-report xml --cov=FoldingAtHomeControl tests"
@@ -52,6 +69,10 @@ exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 [tool.isort]
 profile = "black"
 multi_line_output = 3
+
+[tool.vulture]
+min_confidence = 80
+paths = ["FoldingAtHomeControl", "tests"]
 
 [tool.semantic_release]
 version_toml = "pyproject.toml:tool.poetry.version"

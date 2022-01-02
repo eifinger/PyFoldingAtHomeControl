@@ -30,7 +30,7 @@ async def cancel_task(task_to_cancel):
     await task_to_cancel
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Controller = FoldingAtHomeController("localhost")
     Controller.register_callback(callback)
     loop = asyncio.get_event_loop()

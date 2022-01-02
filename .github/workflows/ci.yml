@@ -1,7 +1,8 @@
 ---
 name: CI
 
-on: 
+# yamllint disable-line rule:truthy
+on:
   push:
     branches:
       - master
@@ -14,28 +15,28 @@ jobs:
       matrix:
         python-version: [3.7, 3.8.0, 3.8.2, 3.8.3, 3.9]
     steps:
-    - uses: actions/checkout@v2.4.0
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-    - name: Install dependencies
-      run: |
-        poetry install
-    - name: Lint
-      run: |
-        poetry run pre-commit run --all-files
-    - name: Test coverage
-      run: |
-        poetry run pytest
-    - uses: codecov/codecov-action@v2.1.0
-      with:
-        token: ${{secrets.CODECOV}}
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
+      - uses: actions/checkout@v2.4.0
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+      - name: Install dependencies
+        run: |
+          poetry install
+      - name: Lint
+        run: |
+          poetry run pre-commit run --all-files
+      - name: Test coverage
+        run: |
+          poetry run pytest
+      - uses: codecov/codecov-action@v2.1.0
+        with:
+          token: ${{secrets.CODECOV}}
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
   security:
     name: CodeQL
     runs-on: ubuntu-latest
@@ -57,7 +58,9 @@ jobs:
       - security
     if: github.ref == 'refs/heads/master'
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v2.4.
+        with:
+          fetch-depth: 0
       - name: Python Semantic Release
         uses: relekang/python-semantic-release@master
         with:

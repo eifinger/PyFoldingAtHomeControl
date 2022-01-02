@@ -6,9 +6,9 @@ auth | [password] | Authenticate.
 error | - | Error message.
 exit | - | Exit the command processor
 heartbeat | - | Prints an increasing hearbeat count.
-log-updates start | - | Enable/diable log updates.
-log-updates restart | - | Enable/diable log updates.
-log-updates | stop | - | Enable/diable log updates.
+log-updates start | - | Enable/disable log updates.
+log-updates restart | - | Enable/disable log updates.
+log-updates | stop | - | Enable/disable log updates.
 quit | - | Exit the command processor
 screensaver | - | Unpause all slots which are paused waiting for a screensaver and pause them again on disconnect.
 updates add | <id> <rate> <expression> | Add subscription.
@@ -56,7 +56,7 @@ If the '-a' option is given then unset options will also be listed.
 Otherwise, if option names are provided only those options will be listed.
 The special name '*' lists all options which have not yet been listed
 and is affected by the '-d' and '-a' options. If a name argument is followed
-directly by an equal sign then the rest of the arugment will be used to set the
+directly by an equal sign then the rest of the argument will be used to set the
 option's value. If instead a name argument is followed immediately by a '!'
 then the option will be reset to its default value. Options which are set or
 reset will also be listed. Options are listed as a PyON format dictionary.

@@ -137,7 +137,7 @@ class FoldingAtHomeController:
         """Start a subscription to commands."""
         subscriptions = []
         for command in commands:
-            subscription = f"updates add {self._get_next_subscription_id()} {self._update_rate} ${command}"  # pylint: disable=line-too-long
+            subscription = f"updates add {self._get_next_subscription_id()} {self._update_rate} ${command}"  # pylint: disable=line-too-long # noqa: line-too-long
             subscriptions.append(subscription)
 
         await self._send_commands_async(subscriptions)

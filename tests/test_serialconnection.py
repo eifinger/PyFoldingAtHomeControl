@@ -5,47 +5,12 @@ from unittest.mock import patch
 import pytest
 
 from FoldingAtHomeControl import FoldingAtHomeControlConnectionFailed
-from FoldingAtHomeControl.serialconnection import SerialConnection
-
-try:
-    from unittest.mock import AsyncMock as MagicMock
-except ImportError:
-    from unittest.mock import MagicMock
-
-    async def async_magic():
-        pass
-
-    MagicMock.__await__ = lambda x: async_magic().__await__()
 
 
-async def wait_two_seconds():
+async def wait_two_seconds(separator=b"\n"):
+    """Waits 2 seconds async than return a single byte."""
     await asyncio.sleep(2)
-
-
-@pytest.fixture
-def serialconnection():
-    """Create a serialconnection."""
-    serialconnection = SerialConnection("localhost", read_timeout=0.5)
-    return serialconnection
-
-
-@pytest.fixture
-def patched_open_connection(event_loop):
-    """Return a tuple of patched stream_reader and stream_writer."""
-    stream_reader = MagicMock()
-    stream_writer = MagicMock()
-    if asyncio.iscoroutinefunction(stream_reader):
-        # Python 3.8.2 and later
-        return_value = (stream_reader, stream_writer)
-        stream_reader.readuntil.return_value = bytes(10)
-    else:
-        # Python 3.8.0 and earlier
-        reader_future = event_loop.create_future()
-        reader_future.set_result(bytes(10))
-        stream_reader.readuntil.return_value = reader_future
-        return_value = event_loop.create_future()
-        return_value.set_result((stream_reader, stream_writer))
-    return return_value
+    return bytes(separator)
 
 
 @pytest.mark.asyncio
@@ -62,6 +27,6 @@ async def test_read_raises_after_timeout(serialconnection, patched_open_connecti
 
 def test_set_read_timeout(serialconnection):
     """Test setting the read timeout works."""
-    assert serialconnection.read_timeout == 0.5
+    assert serialconnection.read_timeout == 1
     serialconnection.set_read_timeout(5)
     assert serialconnection.read_timeout == 5
