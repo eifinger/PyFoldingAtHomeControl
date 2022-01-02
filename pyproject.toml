@@ -45,6 +45,14 @@ black = "21.4b2"
 [tool.pytest.ini_options]
 addopts = "--cov --cov-report term-missing --cov-report xml --cov=FoldingAtHomeControl tests"
 
+[tool.coverage.report]
+show_missing = true
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
 [tool.semantic_release]
 version_toml = "pyproject.toml:tool.poetry.version"
 build_command = "pip install poetry && poetry build"
