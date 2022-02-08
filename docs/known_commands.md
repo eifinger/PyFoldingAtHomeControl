@@ -61,3 +61,7 @@ option's value. If instead a name argument is followed immediately by a '!'
 then the option will be reset to its default value. Options which are set or
 reset will also be listed. Options are listed as a PyON format dictionary.
 [-d / -a] / [<name>[! / =<value>]]...
+
+Command | Arguments | Description
+-- | -- | --
+options power | [Light/Medium/Full] | Set the power level.
