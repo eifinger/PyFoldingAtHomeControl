@@ -3,7 +3,7 @@
 from enum import Enum
 
 COMMAND_OPTIONS = "options"
-COMMAND_POWER = "power"
+COMMAND_POWER = "option power"
 COMMAND_HEARTBEAT = "heartbeat"
 COMMAND_QUEUE_INFO = "queue-info"
 COMMAND_SLOT_INFO = "slot-info"
