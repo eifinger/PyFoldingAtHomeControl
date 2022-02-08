@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v2.1.0 (2022-02-08)
+### Feature
+* Add set_power_level_async ([`505f334`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/505f3344678ebe7464b13190ac79243f553d2714))
+
+### Documentation
+* Document power command ([`f5a8a66`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/f5a8a6697e3f885bc4010632fb78ef041c6e86a9))
+
 ## v2.0.1 (2021-05-12)
 ### Fix
 * Send heartbeat command to keep con alive ([`2a45582`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/2a4558200841f9ab5d556d823f6753a20cee2ff5))
