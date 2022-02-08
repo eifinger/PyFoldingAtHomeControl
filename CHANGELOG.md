@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v2.1.2 (2022-02-08)
+### Fix
+* Send correct power command ([`e18bebd`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/e18bebdf398796e08035fc19c3be9db8e4436068))
+
 ## v2.1.1 (2022-02-08)
 ### Fix
 * Expose PowerLevel ([`e900b79`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/e900b797948b857aef62fbf0c43e76f30f4d48a8))
