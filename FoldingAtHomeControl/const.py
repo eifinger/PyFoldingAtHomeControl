@@ -3,6 +3,7 @@
 from enum import Enum
 
 COMMAND_OPTIONS = "options"
+COMMAND_POWER = "power"
 COMMAND_HEARTBEAT = "heartbeat"
 COMMAND_QUEUE_INFO = "queue-info"
 COMMAND_SLOT_INFO = "slot-info"
@@ -32,3 +33,11 @@ class PyOnMessageTypes(Enum):
     OPTIONS = "options"
     SLOTS = "slots"
     ERROR = "error"
+
+
+class PowerLevel(Enum):
+    """Supported Power Levels."""
+
+    LIGHT = "Light"
+    MEDIUM = "Medium"
+    FULL = "Full"

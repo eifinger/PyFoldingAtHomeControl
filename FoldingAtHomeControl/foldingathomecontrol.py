@@ -11,7 +11,9 @@ from typing import Callable, Optional
 from uuid import uuid4
 
 from .const import (
+    COMMAND_OPTIONS,
     COMMAND_PAUSE,
+    COMMAND_POWER,
     COMMAND_REQUEST_WORKSERVER_ASSIGNMENT,
     COMMAND_SHUTDOWN,
     COMMAND_UNPAUSE,
@@ -21,6 +23,7 @@ from .const import (
     SUBSCRIBE_COMMANDS,
     UNAUTHENTICATED_INDICATOR,
     UNSUBSCRIBE_ALL_COMMAND,
+    PowerLevel,
     PyOnMessageTypes,
 )
 from .exceptions import (
@@ -168,6 +171,12 @@ class FoldingAtHomeController:
     async def request_work_server_assignment_async(self) -> None:
         """Request work server assignment from the assignmentserver."""
         await self._send_command_async(COMMAND_REQUEST_WORKSERVER_ASSIGNMENT)
+
+    async def set_power_level_async(self, power_level: PowerLevel) -> None:
+        """Set the power level."""
+        await self._send_command_async(
+            f"{COMMAND_OPTIONS} {COMMAND_POWER} {power_level.value}"
+        )
 
     async def pause_slot_async(self, slot_id: str) -> None:
         """Pause a slot."""
