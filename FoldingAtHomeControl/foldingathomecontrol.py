@@ -11,7 +11,6 @@ from typing import Callable, Optional
 from uuid import uuid4
 
 from .const import (
-    COMMAND_OPTIONS,
     COMMAND_PAUSE,
     COMMAND_POWER,
     COMMAND_REQUEST_WORKSERVER_ASSIGNMENT,
@@ -174,9 +173,7 @@ class FoldingAtHomeController:
 
     async def set_power_level_async(self, power_level: PowerLevel) -> None:
         """Set the power level."""
-        await self._send_command_async(
-            f"{COMMAND_OPTIONS} {COMMAND_POWER} {power_level.value}"
-        )
+        await self._send_command_async(f"{COMMAND_POWER} {power_level.value}")
 
     async def pause_slot_async(self, slot_id: str) -> None:
         """Pause a slot."""
