@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v2.1.1 (2022-02-08)
+### Fix
+* Expose PowerLevel ([`e900b79`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/e900b797948b857aef62fbf0c43e76f30f4d48a8))
+
 ## v2.1.0 (2022-02-08)
 ### Feature
 * Add set_power_level_async ([`505f334`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/505f3344678ebe7464b13190ac79243f553d2714))
