@@ -1,4 +1,5 @@
 # PyFoldingAtHomeControl
+
 Python library to get stats from your Folding@Home Clients
 
 [![GitHub Actions](https://github.com/eifinger/PyFoldingAtHomeControl/workflows/Python%20package/badge.svg)](https://github.com/eifinger/PyFoldingAtHomeControl/actions?workflow=Python+package)
@@ -10,7 +11,7 @@ Python library to get stats from your Folding@Home Clients
 ## Installation
 
 ```bash
-$ pip install PyFoldingAtHomeControl
+pip install PyFoldingAtHomeControl
 ```
 
 ## Usage
