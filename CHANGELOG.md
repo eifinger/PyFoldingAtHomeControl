@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v2.1.3 (2022-02-12)
+### Fix
+* Add debug log statements for received messages ([`ceb5d2b`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/ceb5d2b43ee1740a888172c384544bf4ed587c0e))
+
 ## v2.1.2 (2022-02-08)
 ### Fix
 * Send correct power command ([`e18bebd`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/e18bebdf398796e08035fc19c3be9db8e4436068))
