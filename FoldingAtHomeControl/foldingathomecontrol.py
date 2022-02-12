@@ -198,6 +198,7 @@ class FoldingAtHomeController:
     async def _try_parse_pyon_message_async(self) -> None:
         """Read from the socket until a full message has been received."""
         raw_message = await self._serialconnection.read_async()
+        _LOGGER.debug("Received message: %s", raw_message)
         if PY_ON_MESSAGE_HEADER in raw_message:
             raw_messages = []
             message_type = get_message_type_from_message(raw_message)
