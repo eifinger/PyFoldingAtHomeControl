@@ -107,14 +107,16 @@ class SerialConnection:
                         await self._read_future
                     except asyncio.CancelledError:
                         pass
-                    _LOGGER.debug(
+                    _LOGGER.error(
                         "Timeout while trying to read from %s:%d",
                         self.address,
                         self.port,
                     )
                     self._is_connected = False
                     raise FoldingAtHomeControlConnectionFailed
+                _LOGGER.debug("Gathering %i completed read results", len(completed))
                 future_results = await asyncio.gather(*completed)
+                _LOGGER.debug("Gathering %i pending read results", len(pending))
                 await asyncio.gather(*pending)
             except IncompleteReadError as error:
                 self._is_connected = False
