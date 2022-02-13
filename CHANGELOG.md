@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v2.2.0 (2022-02-13)
+### Feature
+* Publish send_command_async method ([`9ba9ea1`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/9ba9ea1c4f7e0197edbc4f6cb6134010b089cb59))
+
 ## v2.1.3 (2022-02-12)
 ### Fix
 * Add debug log statements for received messages ([`ceb5d2b`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/ceb5d2b43ee1740a888172c384544bf4ed587c0e))
