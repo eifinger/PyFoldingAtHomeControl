@@ -146,7 +146,7 @@ class FoldingAtHomeController:
 
     async def unsubscribe_all_async(self) -> None:
         """Unsubscribe all subscriptions."""
-        await self._send_command_async(UNSUBSCRIBE_ALL_COMMAND)
+        await self.send_command_async(UNSUBSCRIBE_ALL_COMMAND)
 
     async def start(self, connect: bool = True, subscribe: bool = True) -> None:
         """Start listening to the socket."""
@@ -169,31 +169,31 @@ class FoldingAtHomeController:
 
     async def request_work_server_assignment_async(self) -> None:
         """Request work server assignment from the assignmentserver."""
-        await self._send_command_async(COMMAND_REQUEST_WORKSERVER_ASSIGNMENT)
+        await self.send_command_async(COMMAND_REQUEST_WORKSERVER_ASSIGNMENT)
 
     async def set_power_level_async(self, power_level: PowerLevel) -> None:
         """Set the power level."""
-        await self._send_command_async(f"{COMMAND_POWER} {power_level.value}")
+        await self.send_command_async(f"{COMMAND_POWER} {power_level.value}")
 
     async def pause_slot_async(self, slot_id: str) -> None:
         """Pause a slot."""
-        await self._send_command_async(f"{COMMAND_PAUSE} {slot_id}")
+        await self.send_command_async(f"{COMMAND_PAUSE} {slot_id}")
 
     async def pause_all_slots_async(self) -> None:
         """Pause all slots."""
-        await self._send_command_async(COMMAND_PAUSE)
+        await self.send_command_async(COMMAND_PAUSE)
 
     async def unpause_slot_async(self, slot_id: str) -> None:
         """Unpause a slot."""
-        await self._send_command_async(f"{COMMAND_UNPAUSE} {slot_id}")
+        await self.send_command_async(f"{COMMAND_UNPAUSE} {slot_id}")
 
     async def unpause_all_slots_async(self) -> None:
         """Unpause all slots."""
-        await self._send_command_async(COMMAND_UNPAUSE)
+        await self.send_command_async(COMMAND_UNPAUSE)
 
     async def shutdown(self) -> None:
         """Shutdown the client."""
-        await self._send_command_async(COMMAND_SHUTDOWN)
+        await self.send_command_async(COMMAND_SHUTDOWN)
 
     async def _try_parse_pyon_message_async(self) -> None:
         """Read from the socket until a full message has been received."""
@@ -267,7 +267,7 @@ class FoldingAtHomeController:
         if cancelled_error is not None:
             raise cancelled_error
 
-    async def _send_command_async(self, command: str) -> None:
+    async def send_command_async(self, command: str) -> None:
         """Send a command."""
         if not self.is_connected:
             raise FoldingAtHomeControlNotConnected
