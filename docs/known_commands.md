@@ -5,7 +5,7 @@ Command | Arguments | Description
 auth | [password] | Authenticate.
 error | - | Error message.
 exit | - | Exit the command processor
-heartbeat | - | Prints an increasing hearbeat count.
+heartbeat | - | Prints an increasing heartbeat count.
 log-updates start | - | Enable/disable log updates.
 log-updates restart | - | Enable/disable log updates.
 log-updates | stop | - | Enable/disable log updates.
