@@ -30,11 +30,11 @@ packages = [
 python = "^3.7"
 
 [tool.poetry.dev-dependencies]
-black = "22.10.0"
+black = "^22.10.0"
 blacken-docs = "^1.12.1"
 coverage = {version = "^6.5", extras = ["toml"]}
 bandit = "^1.7.2"
-codecov = "2.1.12"
+codecov = "^2.1.12"
 codespell = "^2.2.2"
 darglint = "^1.8.1"
 flake8 = "4.0.1"
