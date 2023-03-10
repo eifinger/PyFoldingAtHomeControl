@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v3.0.1 (2023-03-10)
+### Fix
+* Fix typo in CHANGELOG ([#220](https://github.com/eifinger/PyFoldingAtHomeControl/issues/220)) ([`93d9099`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/93d9099a0364ed1fce4f63b6e7f6b7e3cff5dcee))
+
 ## v3.0.0 (2023-03-10)
 
 ### Fix
