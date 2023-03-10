@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v3.0.0 (2023-03-10)
+### Fix
+* Release with latest poetry ([#218](https://github.com/eifinger/PyFoldingAtHomeControl/issues/218)) ([`8722d7b`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/8722d7beced2bfb45b9efbdb0dbcdbc7a9b45715))
+
+### Breaking
+* Remove support for python 3.7 ([`8722d7b`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/8722d7beced2bfb45b9efbdb0dbcdbc7a9b45715))
+
+### Documentation
+* Fix typo hearbeat ([`47bcfc2`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/47bcfc25409ce8fe796b249576f434dc9d467f1e))
+
 ## v2.2.0 (2022-02-13)
 ### Feature
 * Publish send_command_async method ([`9ba9ea1`](https://github.com/eifinger/PyFoldingAtHomeControl/commit/9ba9ea1c4f7e0197edbc4f6cb6134010b089cb59))
