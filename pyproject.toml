@@ -44,7 +44,7 @@ pytest-asyncio = "0.20.3"
 pytest-mock = "3.10.0"
 vulture = "^2.7"
 yamllint = "^1.29.0"
-ruff = "^0.0.255"
+ruff = "^0.0.257"
 
 [tool.pytest.ini_options]
 addopts = "--cov --cov-report term-missing --cov-report xml --cov=FoldingAtHomeControl tests"
