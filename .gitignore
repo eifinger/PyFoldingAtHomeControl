@@ -107,3 +107,5 @@ venv/
 
 # vscode
 .vscode/
+
+.ruff*
