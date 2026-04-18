@@ -1,5 +1,33 @@
 ---
 repos:
+  - repo: builtin
+    hooks:
+      - id: trailing-whitespace
+        stages: [commit, push, manual]
+      - id: end-of-file-fixer
+        stages: [commit, push, manual]
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-xml
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+        stages: [commit, push, manual]
+      - id: fix-byte-order-marker
+      - id: detect-private-key
+      - id: no-commit-to-branch
+        pass_filenames: false
+        always_run: true
+        args:
+          - --branch=main
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-ast
+      - id: check-docstring-first
+      - id: debug-statements
   - repo: local
     hooks:
       - id: black
@@ -14,83 +42,12 @@ repos:
         files: '\.(rst|md|markdown|py|tex)$'
         entry: uv run blacken-docs
         require_serial: true
-      - id: check-ast
-        name: 🐍 Check Python AST
-        language: system
-        types: [python]
-        entry: uv run check-ast
-      - id: check-case-conflict
-        name: 🔠 Check for case conflicts
-        language: system
-        entry: uv run check-case-conflict
-      - id: check-docstring-first
-        name: ℹ️  Check docstring is first
-        language: system
-        types: [python]
-        entry: uv run check-docstring-first
-      - id: check-executables-have-shebangs
-        name: 🧐 Check that executables have shebangs
-        language: system
-        types: [text, executable]
-        entry: uv run check-executables-have-shebangs
-        stages: [commit, push, manual]
-      - id: check-json
-        name: ｛ Check JSON files
-        language: system
-        types: [json]
-        entry: uv run check-json
-      - id: check-merge-conflict
-        name: 💥 Check for merge conflicts
-        language: system
-        types: [text]
-        entry: uv run check-merge-conflict
-      - id: check-symlinks
-        name: 🔗 Check for broken symlinks
-        language: system
-        types: [symlink]
-        entry: uv run check-symlinks
-      - id: check-toml
-        name: ✅ Check TOML files
-        language: system
-        types: [toml]
-        entry: uv run check-toml
-      - id: check-xml
-        name: ✅ Check XML files
-        entry: check-xml
-        language: system
-        types: [xml]
-      - id: check-yaml
-        name: ✅ Check YAML files
-        language: system
-        types: [yaml]
-        entry: uv run check-yaml
       - id: codespell
         name: ✅ Check code for common misspellings
         language: system
         types: [text]
         exclude: ^uv\.lock$
         entry: uv run codespell --ignore-words=.codespell
-      - id: debug-statements
-        name: 🪵  Debug Statements and imports (Python)
-        language: system
-        types: [python]
-        entry: uv run debug-statement-hook
-      - id: detect-private-key
-        name: 🕵️  Detect Private Keys
-        language: system
-        types: [text]
-        entry: uv run detect-private-key
-      - id: end-of-file-fixer
-        name: ⮐  Fix End of Files
-        language: system
-        types: [text]
-        entry: uv run end-of-file-fixer
-        stages: [commit, push, manual]
-      - id: fix-byte-order-marker
-        name: 🚏 Fix UTF-8 byte order marker
-        language: system
-        types: [text]
-        entry: uv run fix-byte-order-marker
       - id: mypy
         name: 🆎 Static type checking using mypy
         language: system
@@ -98,26 +55,12 @@ repos:
         exclude: ^tests/
         entry: uv run mypy
         require_serial: true
-      - id: no-commit-to-branch
-        name: 🛑 Don't commit to main branch
-        language: system
-        entry: uv run no-commit-to-branch
-        pass_filenames: false
-        always_run: true
-        args:
-          - --branch=main
       - id: pytest
         name: 🧪 Running tests and test coverage with pytest
         language: system
         types: [python]
         entry: uv run pytest
         pass_filenames: false
-      - id: trailing-whitespace
-        name: ✄  Trim Trailing Whitespace
-        language: system
-        types: [text]
-        entry: uv run trailing-whitespace-fixer
-        stages: [commit, push, manual]
       - id: vulture
         name: 🔍 Find unused Python code with Vulture
         language: system
@@ -130,14 +73,6 @@ repos:
         language: system
         types: [yaml]
         entry: uv run yamllint
-      - id: pyright
-        name: 🆎 Static type checking using pyright
-        entry: pyright
-        language: node
-        types: [python]
-        exclude: ^tests/
-        pass_filenames: false
-        additional_dependencies: ["pyright@1.1.99"]
       - id: ruff
         name: ⚡️ Check with ruff
         language: system
